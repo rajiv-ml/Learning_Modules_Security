@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <domain-config>
+        <!-- Replace with your actual production API domain -->
+        <domain includeSubdomains="true">api.yourlearningapp.com</domain>
+        <trust-anchors>
+            <!-- Only trust system CAs, ignoring user-installed certificates (Charles Proxy etc) -->
+            <certificates src="system" />
+        </trust-anchors>
+        <pin-set expiration="2027-01-01">
+            <!-- Primary Pin -->
+            <pin digest="SHA-256">base64_of_primary_spki_hash_here</pin>
+            <!-- Backup Pin -->
+            <pin digest="SHA-256">base64_of_backup_spki_hash_here</pin>
+        </pin-set>
+    </domain-config>
+    
+    <!-- For localhost dev during RN debug -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+    </domain-config>
+</network-security-config>

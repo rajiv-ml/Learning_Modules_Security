@@ -57,7 +57,7 @@ react {
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
-def enableProguardInReleaseBuilds = false
+def enableProguardInReleaseBuilds = true
 
 /**
  * The preferred build flavor of JavaScriptCore (JSC)
@@ -84,6 +84,16 @@ android {
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
+        externalNativeBuild {
+            cmake {
+                cppFlags "-std=c++20 -I${projectDir}/src/main/cpp/include"
+            }
+        }
+    }
+    externalNativeBuild {
+        cmake {
+            path "src/main/cpp/CMakeLists.txt"
+        }
     }
     signingConfigs {
         debug {
@@ -116,4 +126,8 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    // Security Controls
+    implementation 'com.google.android.play:integrity:1.4.0'
+    implementation 'com.scottyab:rootbeer-lib:0.1.0'
 }

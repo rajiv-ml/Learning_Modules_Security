@@ -1,0 +1,38 @@
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@shared/types/navigation';
+
+import { MainTabNavigator } from './MainTabNavigator';
+import { ModuleDetailScreen } from '@features/learning/ModuleDetailScreen';
+import { VideoPlayerScreen } from '@features/learning/VideoPlayerScreen';
+import { AssessmentScreen } from '@features/assessment/AssessmentScreen';
+import { AssessmentResultScreen } from '@features/assessment/AssessmentResultScreen';
+import { ModuleCompletionScreen } from '@features/learning/ModuleCompletionScreen';
+import { CertificateScreen } from '@features/certificates/CertificateScreen';
+import { colors } from '@shared/theme/colors';
+
+const Stack = createNativeStackNavigator();
+
+export const RootNavigator: React.FC = () => {
+  return (
+    <NavigationContainer independent={true}>
+      <Stack.Navigator
+        initialRouteName="MainTabs"
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+          animation: 'slide_from_right',
+        }}
+      >
+        <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+        <Stack.Screen name="ModuleDetail" component={ModuleDetailScreen} />
+        <Stack.Screen name="VideoPlayer" component={VideoPlayerScreen} />
+        <Stack.Screen name="Assessment" component={AssessmentScreen} />
+        <Stack.Screen name="AssessmentResult" component={AssessmentResultScreen} />
+        <Stack.Screen name="ModuleCompletion" component={ModuleCompletionScreen} />
+        <Stack.Screen name="Certificate" component={CertificateScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+  );
+};
