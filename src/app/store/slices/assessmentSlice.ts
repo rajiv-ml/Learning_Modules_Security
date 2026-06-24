@@ -84,15 +84,6 @@ const assessmentSlice = createSlice({
       return { ...initialState, pastResults };
     },
   },
-  selectors: {
-    selectAssessment: (state) => state,
-    selectAssessmentScore: (state) => state.score,
-    selectAssessmentStatus: (state) => state.isPassed,
-    selectAssessmentLoading: (state) => state.loading,
-    selectCurrentQuestionIndex: (state) => state.currentQuestionIndex,
-    selectAnswers: (state) => state.answers,
-    selectPastResults: (state) => state.pastResults,
-  },
 });
 
 export const {
@@ -105,14 +96,13 @@ export const {
   resetAssessment,
 } = assessmentSlice.actions;
 
-export const {
-  selectAssessment,
-  selectAssessmentScore,
-  selectAssessmentStatus,
-  selectAssessmentLoading,
-  selectCurrentQuestionIndex,
-  selectAnswers,
-  selectPastResults,
-} = assessmentSlice.selectors;
+// Explicitly define global selectors so they work with the root state structure in `store/index.ts`
+export const selectAssessment = (state: any) => state.assessment;
+export const selectAssessmentScore = (state: any) => state.assessment.score;
+export const selectAssessmentStatus = (state: any) => state.assessment.isPassed;
+export const selectAssessmentLoading = (state: any) => state.assessment.loading;
+export const selectCurrentQuestionIndex = (state: any) => state.assessment.currentQuestionIndex;
+export const selectAnswers = (state: any) => state.assessment.answers;
+export const selectPastResults = (state: any) => state.assessment.pastResults;
 
 export default assessmentSlice.reducer;

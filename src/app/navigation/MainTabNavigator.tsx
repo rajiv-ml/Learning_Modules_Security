@@ -6,8 +6,9 @@ import { AssessmentsDashboardScreen } from '@features/assessment/AssessmentsDash
 import { ProgressScreen } from '@features/progress/ProgressScreen';
 import { colors } from '@shared/theme/colors';
 import { Text } from 'react-native';
+import type { MainTabParamList } from '@shared/types/navigation';
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export const MainTabNavigator = () => {
   return (

@@ -1,13 +1,7 @@
-/**
- * Learning Module SDK - VideoListItem
- */
-
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
 import type { VideoLesson } from '@shared/types/module';
-import { colors } from '@shared/theme/colors';
-import { spacing, borderRadius } from '@shared/theme/spacing';
 import { typography } from '@shared/theme/typography';
 
 export interface VideoListItemProps {
@@ -29,15 +23,15 @@ export const VideoListItem: React.FC<VideoListItemProps> = ({
 
   return (
     <TouchableOpacity
-      style={styles.container}
+      style={[styles.container, video.isCompleted && styles.containerCompleted]}
       onPress={() => onPress(video.id)}
       activeOpacity={0.7}
       accessibilityRole="button"
     >
       <View style={styles.thumbnailContainer}>
         {/* Placeholder for thumbnail */}
-        <View style={styles.thumbnailPlaceholder}>
-          <Text style={styles.playIcon}>▶</Text>
+        <View style={[styles.thumbnailPlaceholder, { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }]}>
+          <Text style={styles.playIcon}>{video.isCompleted ? '🔄' : '▶'}</Text>
         </View>
         <View style={styles.durationBadge}>
           <Text style={styles.durationText}>{formatDuration(video.duration)}</Text>
@@ -45,17 +39,25 @@ export const VideoListItem: React.FC<VideoListItemProps> = ({
       </View>
       
       <View style={styles.contentContainer}>
-        <Text style={styles.title} numberOfLines={2}>
-          {index + 1}. {video.title}
-        </Text>
+        <View style={styles.titleRow}>
+          <Text style={styles.title} numberOfLines={2}>
+            {index + 1}. {video.title}
+          </Text>
+          {video.isCompleted && (
+            <View style={styles.completedBadge}>
+              <Text style={styles.completedIcon}>✅</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.progressRow}>
           <ProgressBar
             percentage={video.watchedPercentage}
-            color={video.isCompleted ? colors.success : colors.primary}
+            color={video.isCompleted ? '#10B981' : '#3B82F6'}
+            trackColor="#F1F5F9"
             style={styles.progress}
-            height={4}
+            height={6}
           />
-          {video.isCompleted && <Text style={styles.completedIcon}>✅</Text>}
+          <Text style={styles.progressText}>{Math.round(video.watchedPercentage)}%</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -65,24 +67,29 @@ export const VideoListItem: React.FC<VideoListItemProps> = ({
 const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
-    padding: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: borderRadius.medium,
-    marginBottom: spacing.sm,
+    padding: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    marginBottom: 12,
     elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  containerCompleted: {
+    backgroundColor: '#F8FAFC',
+    borderColor: '#E2E8F0',
   },
   thumbnailContainer: {
-    width: 80,
-    height: 60,
-    borderRadius: borderRadius.small,
-    backgroundColor: '#1E293B',
+    width: 90,
+    height: 68,
+    borderRadius: 12,
     overflow: 'hidden',
     position: 'relative',
-    marginRight: spacing.md,
+    marginRight: 16,
   },
   thumbnailPlaceholder: {
     flex: 1,
@@ -92,31 +99,48 @@ const styles = StyleSheet.create({
   playIcon: {
     fontSize: 24,
     color: '#FFF',
-    opacity: 0.8,
+    opacity: 0.9,
   },
   durationBadge: {
     position: 'absolute',
-    bottom: 4,
-    right: 4,
-    backgroundColor: 'rgba(0,0,0,0.7)',
-    paddingHorizontal: 4,
+    bottom: 6,
+    right: 6,
+    backgroundColor: 'rgba(15, 23, 42, 0.75)',
+    paddingHorizontal: 6,
     paddingVertical: 2,
-    borderRadius: 4,
+    borderRadius: 6,
   },
   durationText: {
     ...typography.caption,
-    color: colors.textInverse,
+    color: '#FFFFFF',
     fontSize: 10,
-    fontWeight: 'bold',
+    fontWeight: '700',
   },
   contentContainer: {
     flex: 1,
     justifyContent: 'center',
   },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
   title: {
+    flex: 1,
     ...typography.bodyMedium,
-    color: colors.textMain,
-    marginBottom: spacing.sm,
+    color: '#1E293B',
+    fontWeight: '600',
+    lineHeight: 20,
+    marginRight: 8,
+  },
+  completedBadge: {
+    backgroundColor: '#DCFCE7',
+    borderRadius: 12,
+    padding: 4,
+  },
+  completedIcon: {
+    fontSize: 12,
   },
   progressRow: {
     flexDirection: 'row',
@@ -124,9 +148,13 @@ const styles = StyleSheet.create({
   },
   progress: {
     flex: 1,
-    marginRight: spacing.md,
+    marginRight: 12,
   },
-  completedIcon: {
-    fontSize: 14,
+  progressText: {
+    ...typography.caption,
+    color: '#64748B',
+    fontWeight: '600',
+    width: 30,
+    textAlign: 'right',
   },
 });

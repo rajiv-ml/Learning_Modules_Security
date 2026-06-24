@@ -176,6 +176,11 @@ const progressSlice = createSlice({
         type: 'certificate_earned',
       });
     },
+    markModuleCompleted(state, action: PayloadAction<string>) {
+      if (state.moduleProgress[action.payload]) {
+        state.moduleProgress[action.payload]!.unlocked = true;
+      }
+    },
   },
   selectors: {
     selectCurrentVideo: (state) => ({
@@ -204,6 +209,7 @@ export const {
   unlockModule,
   updateModuleAssessmentScore,
   addCertificateActivity,
+  markModuleCompleted,
 } = progressSlice.actions;
 
 export const {

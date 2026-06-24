@@ -1,7 +1,3 @@
-/**
- * Learning Module SDK - ModulesScreen (Modules Tab)
- */
-
 import React, { useState, useMemo } from 'react';
 import {
   View,
@@ -21,7 +17,6 @@ import { useGetModulesQuery } from '@data/datasources/moduleApi';
 import { useAppDispatch } from '@app/store';
 import { setSelectedModule } from '@app/store/slices/moduleSlice';
 import { colors } from '@shared/theme/colors';
-import { spacing } from '@shared/theme/spacing';
 import { typography } from '@shared/theme/typography';
 
 const CATEGORIES = ['All', 'Mobile', 'Frontend', 'Backend', 'Cloud'];
@@ -65,225 +60,357 @@ export const ModulesScreen: React.FC = () => {
   if (error) return <ErrorState type="server" message="Failed to load modules." onRetry={refetch} />;
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
       
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <Text style={styles.searchIcon}>🔍</Text>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search modules..."
-          placeholderTextColor={colors.textSecondary}
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
+      {/* Header Background */}
+      <View style={styles.headerBackground}>
+        <View style={styles.headerGlow} />
+        <SafeAreaView edges={['top', 'left', 'right']} style={styles.headerSafeArea}>
+          <Text style={styles.headerTitle}>Explore Modules</Text>
+          <Text style={styles.headerSubtitle}>Discover new skills to level up your career.</Text>
+          
+          {/* Search Bar */}
+          <View style={styles.searchContainer}>
+            <Text style={styles.searchIcon}>🔍</Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="What do you want to learn?"
+              placeholderTextColor="#94A3B8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+          </View>
+        </SafeAreaView>
       </View>
 
-      {/* Category Filter Chips */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.categoryScrollView}
-        contentContainerStyle={styles.categoryScroll}
-      >
-        {CATEGORIES.map((cat) => (
-          <TouchableOpacity
-            key={cat}
-            style={[
-              styles.categoryChip,
-              selectedCategory === cat && styles.categoryChipActive,
-            ]}
-            onPress={() => setSelectedCategory(cat)}
+      <View style={styles.contentContainer}>
+        {/* Category Filter Chips */}
+        <View style={styles.categoryWrapper}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.categoryScrollView}
+            contentContainerStyle={styles.categoryScroll}
           >
-            <Text
-              style={[
-                styles.categoryChipText,
-                selectedCategory === cat && styles.categoryChipTextActive,
-              ]}
-            >
-              {cat}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-
-      {/* Module Cards */}
-      <ScrollView
-        style={styles.modulesList}
-        contentContainerStyle={styles.modulesContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {filteredModules.map((mod) => (
-          <TouchableOpacity
-            key={mod.id}
-            style={[styles.moduleCard, mod.isLocked && styles.moduleCardLocked]}
-            activeOpacity={mod.isLocked ? 1 : 0.8}
-            onPress={() => handleModulePress(mod.id)}
-          >
-            {/* Thumbnail */}
-            <View style={[styles.moduleImage, mod.isLocked && styles.moduleImageLocked]}>
-              <Text style={styles.moduleImageEmoji}>
-                {mod.isLocked ? '🔒' : '💻'}
-              </Text>
-            </View>
-
-            {/* Info */}
-            <View style={styles.moduleInfo}>
-              <Text style={[styles.moduleTitle, mod.isLocked && styles.moduleTextLocked]} numberOfLines={2}>
-                {mod.title}
-              </Text>
-              <View style={styles.moduleMetaRow}>
-                <Text style={styles.moduleMeta}>📖 {mod.lessonsCount} Lessons</Text>
-                <Text style={styles.moduleMeta}>  ⏱ {mod.duration}</Text>
-                <Text style={styles.moduleMeta}>  📊 {mod.difficulty}</Text>
-              </View>
-
-              {/* Progress */}
-              <View style={styles.moduleProgressRow}>
-                <Text style={styles.moduleProgressLabel}>Progress</Text>
-                <Text style={[
-                  styles.moduleProgressValue,
-                  mod.completionPercentage > 0 && styles.moduleProgressValueActive,
-                ]}>
-                  {mod.completionPercentage}%
+            {CATEGORIES.map((cat) => (
+              <TouchableOpacity
+                key={cat}
+                style={[
+                  styles.categoryChip,
+                  selectedCategory === cat && styles.categoryChipActive,
+                ]}
+                onPress={() => setSelectedCategory(cat)}
+              >
+                <Text
+                  style={[
+                    styles.categoryChipText,
+                    selectedCategory === cat && styles.categoryChipTextActive,
+                  ]}
+                >
+                  {cat}
                 </Text>
-              </View>
-              <ProgressBar
-                percentage={mod.completionPercentage}
-                color={mod.isCompleted ? colors.success : colors.primary}
-                trackColor={mod.isLocked ? colors.border : '#E8EDFB'}
-                height={6}
-              />
-            </View>
-          </TouchableOpacity>
-        ))}
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-        {filteredModules.length === 0 && (
-          <View style={styles.emptyState}>
-            <Text style={styles.emptyEmoji}>🔍</Text>
-            <Text style={styles.emptyText}>No modules found</Text>
-          </View>
-        )}
-      </ScrollView>
-    </SafeAreaView>
+        {/* Module Cards */}
+        <ScrollView
+          style={styles.modulesList}
+          contentContainerStyle={styles.modulesContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {filteredModules.map((mod, index) => (
+            <TouchableOpacity
+              key={mod.id}
+              style={[styles.moduleCard, mod.isLocked && styles.moduleCardLocked]}
+              activeOpacity={mod.isLocked ? 1 : 0.8}
+              onPress={() => handleModulePress(mod.id)}
+            >
+              {/* Thumbnail */}
+              <View style={[
+                styles.moduleImage, 
+                mod.isLocked ? styles.moduleImageLocked : { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }
+              ]}>
+                <Text style={styles.moduleImageEmoji}>
+                  {mod.isLocked ? '🔒' : (index % 2 === 0 ? '💻' : '📱')}
+                </Text>
+                
+                {mod.isCompleted && (
+                  <View style={styles.completedBadge}>
+                    <Text style={styles.completedBadgeText}>✓ Done</Text>
+                  </View>
+                )}
+              </View>
+
+              {/* Info */}
+              <View style={styles.moduleInfo}>
+                <View style={styles.categoryTag}>
+                  <Text style={styles.categoryTagText}>{mod.category}</Text>
+                </View>
+                
+                <Text style={[styles.moduleTitle, mod.isLocked && styles.moduleTextLocked]} numberOfLines={2}>
+                  {mod.title}
+                </Text>
+                <View style={styles.moduleMetaRow}>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaIcon}>📖</Text>
+                    <Text style={styles.metaText}>{mod.lessonsCount} lessons</Text>
+                  </View>
+                  <View style={styles.metaItem}>
+                    <Text style={styles.metaIcon}>⏱</Text>
+                    <Text style={styles.metaText}>{mod.duration}</Text>
+                  </View>
+                </View>
+
+                {/* Progress */}
+                <View style={styles.progressContainer}>
+                  <View style={styles.moduleProgressRow}>
+                    <Text style={styles.moduleProgressLabel}>Progress</Text>
+                    <Text style={[
+                      styles.moduleProgressValue,
+                      mod.completionPercentage > 0 && styles.moduleProgressValueActive,
+                    ]}>
+                      {mod.completionPercentage}%
+                    </Text>
+                  </View>
+                  <ProgressBar
+                    percentage={mod.completionPercentage}
+                    color={mod.isCompleted ? '#10B981' : '#3B82F6'}
+                    trackColor={mod.isLocked ? '#F1F5F9' : '#DBEAFE'}
+                    height={6}
+                  />
+                </View>
+              </View>
+            </TouchableOpacity>
+          ))}
+
+          {filteredModules.length === 0 && (
+            <View style={styles.emptyState}>
+              <Text style={styles.emptyEmoji}>🔍</Text>
+              <Text style={styles.emptyText}>No modules found matching '{searchQuery}'</Text>
+            </View>
+          )}
+        </ScrollView>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
-  // Search
+  headerBackground: {
+    backgroundColor: '#0F172A',
+    paddingBottom: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    position: 'relative',
+    overflow: 'hidden',
+    zIndex: 10,
+    elevation: 10,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+  },
+  headerGlow: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(59, 130, 246, 0.25)',
+  },
+  headerSafeArea: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+  },
+  headerTitle: {
+    ...typography.h1,
+    color: '#FFFFFF',
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    color: '#94A3B8',
+    marginBottom: 24,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: spacing.base,
-    marginTop: spacing.xl,
-    marginBottom: spacing.md,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    height: 48,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.2)',
   },
   searchIcon: {
     fontSize: 18,
-    marginRight: 10,
+    marginRight: 12,
   },
   searchInput: {
     flex: 1,
     ...typography.body,
-    color: colors.textMain,
+    color: '#FFFFFF',
     padding: 0,
+    fontSize: 16,
   },
-  // Categories
+  contentContainer: {
+    flex: 1,
+    marginTop: -20,
+    paddingTop: 20,
+  },
+  categoryWrapper: {
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#F1F5F9',
+    backgroundColor: '#F8FAFC',
+  },
   categoryScrollView: {
     flexGrow: 0,
   },
   categoryScroll: {
-    paddingHorizontal: spacing.base,
-    paddingBottom: spacing.md,
-    alignItems: 'center',
-    gap: 8,
+    paddingHorizontal: 24,
+    gap: 10,
   },
   categoryChip: {
-    paddingHorizontal: 18,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: colors.white,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F0',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 4,
+    elevation: 1,
   },
   categoryChipActive: {
-    backgroundColor: colors.primary,
-    borderColor: colors.primary,
+    backgroundColor: '#3B82F6',
+    borderColor: '#3B82F6',
   },
   categoryChipText: {
     ...typography.bodyMedium,
-    color: colors.textMain,
+    color: '#64748B',
+    fontWeight: '600',
   },
   categoryChipTextActive: {
     color: '#FFFFFF',
   },
-  // Modules List
   modulesList: {
     flex: 1,
   },
   modulesContent: {
-    paddingHorizontal: spacing.base,
+    paddingHorizontal: 24,
+    paddingTop: 16,
     paddingBottom: 100,
   },
   moduleCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
+    flexDirection: 'row',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     overflow: 'hidden',
-    marginBottom: spacing.base,
-    elevation: 2,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    padding: 12,
   },
   moduleCardLocked: {
-    opacity: 0.6,
+    opacity: 0.65,
+    backgroundColor: '#F8FAFC',
   },
   moduleImage: {
-    height: 160,
-    backgroundColor: '#1E293B',
+    width: 100,
+    height: 120,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    position: 'relative',
   },
   moduleImageLocked: {
-    backgroundColor: '#94A3B8',
+    backgroundColor: '#CBD5E1',
   },
   moduleImageEmoji: {
-    fontSize: 48,
+    fontSize: 40,
+  },
+  completedBadge: {
+    position: 'absolute',
+    bottom: -8,
+    backgroundColor: '#10B981',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: '#FFFFFF',
+  },
+  completedBadgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '700',
   },
   moduleInfo: {
-    padding: spacing.base,
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+  },
+  categoryTag: {
+    backgroundColor: '#F1F5F9',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginBottom: 8,
+  },
+  categoryTagText: {
+    color: '#64748B',
+    fontSize: 10,
+    fontWeight: '700',
+    textTransform: 'uppercase',
   },
   moduleTitle: {
     ...typography.h3,
-    color: colors.textMain,
+    color: '#1E293B',
+    fontSize: 18,
     marginBottom: 8,
+    lineHeight: 24,
   },
   moduleTextLocked: {
-    color: colors.textDisabled,
+    color: '#94A3B8',
   },
   moduleMetaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     marginBottom: 12,
+    gap: 12,
   },
-  moduleMeta: {
+  metaItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  metaIcon: {
+    fontSize: 14,
+    marginRight: 4,
+  },
+  metaText: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  progressContainer: {
+    marginTop: 'auto',
   },
   moduleProgressRow: {
     flexDirection: 'row',
@@ -292,28 +419,29 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   moduleProgressLabel: {
-    ...typography.bodyMedium,
-    color: colors.textMain,
+    ...typography.caption,
+    color: '#64748B',
+    fontWeight: '600',
   },
   moduleProgressValue: {
-    ...typography.bodyMedium,
-    color: colors.textSecondary,
+    ...typography.caption,
+    color: '#94A3B8',
+    fontWeight: '600',
   },
   moduleProgressValueActive: {
-    color: colors.primary,
+    color: '#3B82F6',
     fontWeight: '700',
   },
-  // Empty
   emptyState: {
     alignItems: 'center',
-    paddingTop: 60,
+    paddingTop: 80,
   },
   emptyEmoji: {
-    fontSize: 48,
-    marginBottom: 12,
+    fontSize: 56,
+    marginBottom: 16,
   },
   emptyText: {
-    ...typography.body,
-    color: colors.textSecondary,
+    ...typography.bodyMedium,
+    color: '#64748B',
   },
 });

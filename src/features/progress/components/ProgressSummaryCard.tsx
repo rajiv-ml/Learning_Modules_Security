@@ -37,7 +37,6 @@ export const ProgressSummaryCard: React.FC<ProgressSummaryCardProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: layout.progressSummaryHeight,
     marginBottom: spacing.xl,
     justifyContent: 'center',
   },

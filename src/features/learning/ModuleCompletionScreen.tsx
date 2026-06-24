@@ -14,7 +14,7 @@ export const ModuleCompletionScreen: React.FC<ModuleCompletionScreenProps> = ({
   navigation,
 }) => {
   const handleReturn = () => {
-    navigation.navigate('Dashboard');
+    navigation.navigate('MainTabs');
   };
 
   return (

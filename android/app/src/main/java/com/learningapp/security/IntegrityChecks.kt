@@ -4,21 +4,11 @@ object IntegrityChecks {
     init {
         try {
             System.loadLibrary("security_checks")
-            nativeInit()
         } catch (e: UnsatisfiedLinkError) {
-            // Handle error, maybe crash or log
+            // Handle error
         }
     }
 
     @JvmStatic
-    external fun nativeInit()
-
-    @JvmStatic
-    external fun nativeCheckRootFiles(): Boolean
-
-    @JvmStatic
-    external fun nativeCheckFrida(): Boolean
-
-    @JvmStatic
-    external fun nativeCheckHookFrameworks(): Boolean
+    external fun nativeGetSecurityRiskLevel(apkPath: String, isSignatureValid: Boolean): String
 }

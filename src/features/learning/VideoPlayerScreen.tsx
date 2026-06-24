@@ -1,19 +1,14 @@
-/**
- * Learning Module SDK - VideoPlayerScreen
- */
-
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TouchableOpacity, AppState } from 'react-native';
+import { View, StyleSheet, Text, TouchableOpacity, StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Video from 'react-native-video';
 import type { OnProgressData } from 'react-native-video';
-import { Header } from '@shared/components/Header/Header';
 import { useGetModuleDetailsQuery } from '@data/datasources/moduleApi';
 import { useUpdateVideoProgressMutation } from '@data/datasources/progressApi';
 import { useAppDispatch } from '@app/store';
 import { updateProgress, markLessonCompleted, resetLessonProgress } from '@app/store/slices/progressSlice';
 import { VIDEO_COMPLETION_THRESHOLD, PROGRESS_MILESTONES } from '@shared/utils';
-import { colors } from '@shared/theme/colors';
-import { layout } from '@shared/theme/spacing';
+import { typography } from '@shared/theme/typography';
 import type { VideoPlayerScreenProps } from '@shared/types/navigation';
 import { Loader } from '@shared/components/Loader/Loader';
 import { ErrorState } from '@shared/components/ErrorState/ErrorState';
@@ -33,19 +28,19 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
   const maxWatchedPosition = useRef<number>(0);
 
   const [isPaused, setIsPaused] = useState(false);
-  const [isCompleted, setIsCompleted] = useState(false);
+  const isCompletedRef = useRef<boolean>(false);
 
   const videoData = moduleDetail?.videos?.find((v) => v.id === videoId);
 
-  // Unmount penalty logic
+  // Unmount penalty logic: wipe progress if user exits before completing
   useEffect(() => {
     return () => {
-      // If component unmounts and video wasn't completed
-      if (!isCompleted && maxWatchedPosition.current > 0) {
+      // If component unmounts and video wasn't completed, reset progress to 0
+      if (!isCompletedRef.current && maxWatchedPosition.current > 0) {
         dispatch(resetLessonProgress({ moduleId, videoId }));
       }
     };
-  }, [isCompleted, moduleId, videoId, dispatch]);
+  }, [moduleId, videoId, dispatch]);
 
   const handleBack = () => {
     navigation.goBack();
@@ -90,8 +85,8 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
       }).catch(err => console.warn('Failed to sync progress', err));
     }
 
-    if (percentage >= VIDEO_COMPLETION_THRESHOLD) {
-      setIsCompleted(true);
+    if (percentage >= VIDEO_COMPLETION_THRESHOLD && !isCompletedRef.current) {
+      isCompletedRef.current = true;
       dispatch(markLessonCompleted({
         lessonId: videoId,
         moduleId,
@@ -110,8 +105,17 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
 
   return (
     <View style={styles.container}>
-      <Header title={videoData.title} onBack={handleBack} />
+      <StatusBar barStyle="light-content" backgroundColor="#000000" />
       
+      {/* Header */}
+      <SafeAreaView edges={['top', 'left', 'right']} style={styles.header}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>{videoData.title}</Text>
+        <View style={styles.headerSpacer} />
+      </SafeAreaView>
+
       <View style={styles.videoContainer}>
         <Video
           ref={videoRef}
@@ -124,10 +128,33 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
           progressUpdateInterval={1000}
           ignoreSilentSwitch="ignore"
         />
+        
+        {/* Custom Premium Controls Overlay */}
         <View style={styles.overlay}>
-          <TouchableOpacity style={styles.playPauseButton} onPress={togglePlayPause}>
-            <Text style={styles.playPauseText}>{isPaused ? '▶ Play' : '⏸ Pause'}</Text>
+          <TouchableOpacity 
+            style={styles.centerPlayButton} 
+            onPress={togglePlayPause}
+            activeOpacity={0.8}
+          >
+            <View style={styles.playIconBg}>
+              <Text style={styles.playIcon}>{isPaused ? '▶' : '⏸'}</Text>
+            </View>
           </TouchableOpacity>
+        </View>
+      </View>
+      
+      <View style={styles.infoContainer}>
+        <View style={styles.infoCard}>
+          <View style={styles.warningBadge}>
+            <Text style={styles.warningIcon}>⚠️</Text>
+            <Text style={styles.warningText}>Strict Tracking Active</Text>
+          </View>
+          <Text style={styles.infoTitle}>Video Rules</Text>
+          <Text style={styles.infoDesc}>
+            1. You cannot skip ahead. Forward/backward controls are disabled.{'\n'}
+            2. You must watch until the end to mark this complete.{'\n'}
+            3. If you leave early, your progress will be reset to 0%.
+          </Text>
         </View>
       </View>
     </View>
@@ -137,36 +164,121 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#0F172A',
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.2)',
+  },
+  backButtonText: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+  },
+  headerTitle: {
+    flex: 1,
+    ...typography.bodyMedium,
+    color: '#FFFFFF',
+    fontWeight: '700',
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+  headerSpacer: {
+    width: 40,
   },
   videoContainer: {
     width: '100%',
-    height: layout.videoPlayerHeight,
+    aspectRatio: 16 / 9,
     backgroundColor: '#000000',
+    position: 'relative',
   },
   video: {
     flex: 1,
-  },
-  placeholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#333333',
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
   },
-  playPauseButton: {
+  centerPlayButton: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  playIconBg: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
     backgroundColor: 'rgba(0,0,0,0.6)',
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
-  playPauseText: {
-    color: '#FFF',
-    fontSize: 18,
-    fontWeight: 'bold',
+  playIcon: {
+    color: '#FFFFFF',
+    fontSize: 24,
+    marginLeft: 4, // centering offset for play icon
+  },
+  infoContainer: {
+    padding: 24,
+  },
+  infoCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  warningBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+    alignSelf: 'flex-start',
+    marginBottom: 16,
+  },
+  warningIcon: {
+    fontSize: 14,
+    marginRight: 6,
+  },
+  warningText: {
+    ...typography.caption,
+    color: '#DC2626',
+    fontWeight: '700',
+  },
+  infoTitle: {
+    ...typography.h3,
+    color: '#1E293B',
+    marginBottom: 12,
+  },
+  infoDesc: {
+    ...typography.body,
+    color: '#64748B',
+    lineHeight: 24,
   },
 });

@@ -12,11 +12,11 @@ import { ModuleCompletionScreen } from '@features/learning/ModuleCompletionScree
 import { CertificateScreen } from '@features/certificates/CertificateScreen';
 import { colors } from '@shared/theme/colors';
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator: React.FC = () => {
   return (
-    <NavigationContainer independent={true}>
+    <NavigationContainer>
       <Stack.Navigator
         initialRouteName="MainTabs"
         screenOptions={{

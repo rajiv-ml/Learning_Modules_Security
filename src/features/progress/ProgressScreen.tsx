@@ -1,7 +1,3 @@
-/**
- * Learning Module SDK - ProgressScreen (Analytics Tab)
- */
-
 import React from 'react';
 import {
   View,
@@ -10,9 +6,8 @@ import {
   Text,
   StatusBar,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
-import { colors } from '@shared/theme/colors';
-import { spacing } from '@shared/theme/spacing';
 import { typography } from '@shared/theme/typography';
 
 const WEEKLY_DATA = [
@@ -40,11 +35,15 @@ export const ProgressScreen: React.FC = () => {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
+      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Analytics</Text>
+      {/* Header Background */}
+      <View style={styles.headerBackground}>
+        <View style={styles.headerGlow} />
+        <SafeAreaView edges={['top', 'left', 'right']} style={styles.headerSafeArea}>
+          <Text style={styles.headerTitle}>Your Progress</Text>
+          <Text style={styles.headerSubtitle}>Track your learning analytics and skills.</Text>
+        </SafeAreaView>
       </View>
 
       <ScrollView
@@ -54,23 +53,28 @@ export const ProgressScreen: React.FC = () => {
       >
         {/* Learning Journey Card */}
         <View style={styles.journeyCard}>
-          <Text style={styles.journeyLabel}>Learning Journey</Text>
-          <View style={styles.journeyMainRow}>
-            <Text style={styles.journeyPercentage}>72%</Text>
-            <Text style={styles.journeySubLabel}>Overall Completed</Text>
-          </View>
-          <ProgressBar
-            percentage={72}
-            color="#FFFFFF"
-            trackColor="rgba(255,255,255,0.3)"
-            height={8}
-            style={styles.journeyProgress}
-          />
-          <View style={styles.journeyFooter}>
-            <Text style={styles.journeyFooterIcon}>⏱</Text>
-            <Text style={styles.journeyFooterText}>
-              {totalHours.toFixed(1)} hours learned this week
-            </Text>
+          <View style={styles.journeyGlow} />
+          <View style={styles.journeyContent}>
+            <Text style={styles.journeyLabel}>Learning Journey</Text>
+            <View style={styles.journeyMainRow}>
+              <Text style={styles.journeyPercentage}>72%</Text>
+              <Text style={styles.journeySubLabel}>Overall Completed</Text>
+            </View>
+            <ProgressBar
+              percentage={72}
+              color="#60A5FA"
+              trackColor="rgba(255,255,255,0.1)"
+              height={8}
+              style={styles.journeyProgress}
+            />
+            <View style={styles.journeyFooter}>
+              <View style={styles.journeyFooterBadge}>
+                <Text style={styles.journeyFooterIcon}>⏱</Text>
+              </View>
+              <Text style={styles.journeyFooterText}>
+                {totalHours.toFixed(1)} hours learned this week
+              </Text>
+            </View>
           </View>
         </View>
 
@@ -93,14 +97,10 @@ export const ProgressScreen: React.FC = () => {
                         styles.chartBarFill,
                         {
                           height: barHeight,
-                          backgroundColor: item.hours > 0 ? colors.primary : 'transparent',
+                          backgroundColor: item.hours > 0 ? '#3B82F6' : 'transparent',
                         },
                       ]}
                     />
-                    {/* Dot on top */}
-                    {item.hours > 0 && (
-                      <View style={styles.chartBarDot} />
-                    )}
                   </View>
                   <Text style={styles.chartDayLabel}>{item.day}</Text>
                 </View>
@@ -114,21 +114,21 @@ export const ProgressScreen: React.FC = () => {
           <Text style={styles.sectionTitle}>Skill Growth</Text>
           {SKILLS.map((skill) => (
             <View key={skill.name} style={styles.skillRow}>
-              <Text style={styles.skillName}>{skill.name}</Text>
-              <View style={styles.skillBarContainer}>
-                <ProgressBar
-                  percentage={skill.progress}
-                  color={colors.primary}
-                  trackColor="#E8EDFB"
-                  height={8}
-                />
+              <View style={styles.skillInfo}>
+                <Text style={styles.skillName}>{skill.name}</Text>
+                <Text style={[
+                  styles.skillPercent,
+                  skill.progress >= 75 && styles.skillPercentHigh,
+                ]}>
+                  {skill.progress}%
+                </Text>
               </View>
-              <Text style={[
-                styles.skillPercent,
-                skill.progress >= 75 && styles.skillPercentHigh,
-              ]}>
-                {skill.progress}%
-              </Text>
+              <ProgressBar
+                percentage={skill.progress}
+                color={skill.progress >= 75 ? '#10B981' : '#3B82F6'}
+                trackColor="#F1F5F9"
+                height={8}
+              />
             </View>
           ))}
         </View>
@@ -140,86 +140,144 @@ export const ProgressScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
-  header: {
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
-    borderBottomWidth: 2,
-    borderBottomColor: colors.primary,
+  headerBackground: {
+    backgroundColor: '#0F172A',
+    paddingBottom: 32,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    position: 'relative',
+    overflow: 'hidden',
+    zIndex: 10,
+    elevation: 10,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 16,
+  },
+  headerGlow: {
+    position: 'absolute',
+    bottom: -50,
+    left: -50,
+    width: 250,
+    height: 250,
+    borderRadius: 125,
+    backgroundColor: 'rgba(59, 130, 246, 0.25)',
+  },
+  headerSafeArea: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
   },
   headerTitle: {
+    ...typography.h1,
+    color: '#FFFFFF',
     fontSize: 28,
-    fontWeight: '800',
-    color: colors.textMain,
-    fontStyle: 'italic',
+    marginBottom: 8,
+  },
+  headerSubtitle: {
+    ...typography.body,
+    color: '#94A3B8',
+    marginBottom: 10,
   },
   scrollView: {
     flex: 1,
+    marginTop: -20,
   },
   scrollContent: {
-    padding: spacing.base,
+    paddingTop: 40,
+    paddingHorizontal: 24,
     paddingBottom: 100,
   },
   // Journey Card
   journeyCard: {
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    padding: spacing.lg,
-    marginBottom: spacing.base,
+    backgroundColor: '#1E293B',
+    borderRadius: 24,
+    marginBottom: 24,
+    overflow: 'hidden',
+    position: 'relative',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.2,
+    shadowRadius: 16,
+    elevation: 5,
+  },
+  journeyGlow: {
+    position: 'absolute',
+    top: -50,
+    right: -50,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(59, 130, 246, 0.3)',
+  },
+  journeyContent: {
+    padding: 24,
   },
   journeyLabel: {
-    ...typography.body,
-    color: 'rgba(255,255,255,0.8)',
+    ...typography.bodyMedium,
+    color: '#94A3B8',
     marginBottom: 8,
   },
   journeyMainRow: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    marginBottom: spacing.md,
+    marginBottom: 24,
     gap: 8,
   },
   journeyPercentage: {
-    fontSize: 48,
+    fontSize: 56,
     fontWeight: '800',
     color: '#FFFFFF',
+    letterSpacing: -1,
   },
   journeySubLabel: {
     ...typography.bodyMedium,
-    color: 'rgba(255,255,255,0.9)',
+    color: '#CBD5E1',
   },
   journeyProgress: {
-    marginBottom: spacing.md,
+    marginBottom: 20,
   },
   journeyFooter: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 12,
+  },
+  journeyFooterBadge: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   journeyFooterIcon: {
     fontSize: 16,
   },
   journeyFooterText: {
-    ...typography.body,
-    color: 'rgba(255,255,255,0.85)',
+    ...typography.caption,
+    color: '#CBD5E1',
+    fontWeight: '500',
   },
   // Section Card
   sectionCard: {
-    backgroundColor: colors.white,
-    borderRadius: 16,
-    padding: spacing.lg,
-    marginBottom: spacing.base,
-    elevation: 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 24,
+    marginBottom: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
   sectionTitle: {
     ...typography.h3,
-    color: colors.textMain,
-    marginBottom: spacing.lg,
+    color: '#1E293B',
+    fontSize: 20,
+    marginBottom: 24,
   },
   // Chart
   chartContainer: {
@@ -234,59 +292,51 @@ const styles = StyleSheet.create({
   },
   chartBarLabel: {
     ...typography.caption,
-    color: colors.textSecondary,
-    marginBottom: 4,
+    color: '#64748B',
+    fontWeight: '600',
+    marginBottom: 8,
     height: 16,
   },
   chartBarTrack: {
-    width: 24,
+    width: 16,
     height: MAX_BAR_HEIGHT,
     backgroundColor: '#F1F5F9',
-    borderRadius: 12,
+    borderRadius: 8,
     justifyContent: 'flex-end',
     alignItems: 'center',
-    overflow: 'visible',
+    overflow: 'hidden',
   },
   chartBarFill: {
-    width: 24,
-    borderRadius: 12,
-  },
-  chartBarDot: {
-    position: 'absolute',
-    top: -4,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.primary,
+    width: 16,
+    borderRadius: 8,
   },
   chartDayLabel: {
     ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 8,
+    color: '#64748B',
+    marginTop: 12,
+    fontWeight: '500',
   },
   // Skills
   skillRow: {
+    marginBottom: 20,
+  },
+  skillInfo: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   skillName: {
     ...typography.bodyMedium,
-    color: colors.textMain,
-    width: 100,
-  },
-  skillBarContainer: {
-    flex: 1,
-    marginHorizontal: 12,
+    color: '#1E293B',
+    fontWeight: '600',
   },
   skillPercent: {
     ...typography.bodyMedium,
-    color: colors.textSecondary,
-    width: 40,
-    textAlign: 'right',
+    color: '#64748B',
+    fontWeight: '600',
   },
   skillPercentHigh: {
-    color: colors.primary,
-    fontWeight: '700',
+    color: '#10B981',
   },
 });

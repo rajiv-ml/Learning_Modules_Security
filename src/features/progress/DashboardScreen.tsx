@@ -1,7 +1,3 @@
-/**
- * Learning Module SDK - DashboardScreen (Home Tab)
- */
-
 import React, { useEffect, useMemo } from 'react';
 import {
   View,
@@ -18,8 +14,6 @@ import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
 import { useGetModulesQuery } from '@data/datasources/moduleApi';
 import { useAppDispatch } from '@app/store';
 import { setModules, setSelectedModule } from '@app/store/slices/moduleSlice';
-import { colors } from '@shared/theme/colors';
-import { spacing } from '@shared/theme/spacing';
 import { typography } from '@shared/theme/typography';
 import type { DashboardScreenProps } from '@shared/types/navigation';
 
@@ -48,8 +42,7 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       return { completedCount: 0, overallProgress: 0, inProgressModule: null, testsCompleted: 0, avgScore: 0 };
     }
     const completed = modules.filter((m) => m.isCompleted).length;
-    const progress =
-      modules.reduce((sum, m) => sum + m.completionPercentage, 0) / modules.length;
+    const progress = modules.reduce((sum, m) => sum + m.completionPercentage, 0) / modules.length;
     const inProgress = modules.find((m) => !m.isCompleted && !m.isLocked && m.completionPercentage > 0);
 
     return {
@@ -86,24 +79,19 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Greeting Header */}
+      <StatusBar barStyle="light-content" backgroundColor="#0F172A" />
+      
+      {/* Top Graphic Header */}
+      <View style={styles.headerBackground}>
+        <View style={styles.headerGlow1} />
+        <View style={styles.headerGlow2} />
         <View style={styles.greetingRow}>
           <View style={styles.greetingTextContainer}>
-            <Text style={styles.greetingText}>
-              👋 {getGreeting()}, Learner
-            </Text>
-            <Text style={styles.greetingSubtext}>
-              Keep learning. You're {Math.round(overallProgress)}% through!
-            </Text>
+            <Text style={styles.greetingText}>{getGreeting()}, Learner 👋</Text>
+            <Text style={styles.greetingSubtext}>Let's continue your journey today!</Text>
           </View>
           <View style={styles.avatarContainer}>
-            <Text style={styles.avatarText}>👤</Text>
+            <Text style={styles.avatarText}>🧑‍🎓</Text>
           </View>
         </View>
 
@@ -114,88 +102,101 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
             activeOpacity={0.9}
             onPress={() => handleModulePress(inProgressModule.id)}
           >
-            <View style={styles.heroGradient}>
-              <View style={styles.heroBadge}>
-                <Text style={styles.heroBadgeText}>In Progress</Text>
+            <View style={styles.heroGlass}>
+              <View style={styles.heroTopRow}>
+                <View style={styles.heroBadge}>
+                  <Text style={styles.heroBadgeText}>Continuing</Text>
+                </View>
+                <Text style={styles.heroMetaIcon}>🎯</Text>
               </View>
+              
               <Text style={styles.heroTitle}>{inProgressModule.title}</Text>
-              <Text style={styles.heroMeta}>
-                {inProgressModule.duration} • Module
-              </Text>
+              <Text style={styles.heroMeta}>{inProgressModule.duration} • Module</Text>
+              
               <View style={styles.heroProgressRow}>
                 <ProgressBar
                   percentage={inProgressModule.completionPercentage}
-                  color="#FFFFFF"
-                  trackColor="rgba(255,255,255,0.3)"
-                  height={6}
+                  color="#60A5FA"
+                  trackColor="rgba(255,255,255,0.1)"
+                  height={8}
                   style={styles.heroProgressBar}
                 />
+                <Text style={styles.heroProgressText}>{Math.round(inProgressModule.completionPercentage)}%</Text>
               </View>
+              
               <View style={styles.heroContinueRow}>
-                <View style={{flex: 1}} />
-                <TouchableOpacity
-                  style={styles.heroContinueButton}
-                  onPress={() => handleModulePress(inProgressModule.id)}
-                >
-                  <Text style={styles.heroContinueText}>▶ Continue</Text>
-                </TouchableOpacity>
+                <View style={styles.heroButton}>
+                  <Text style={styles.heroButtonText}>Resume Learning ▶</Text>
+                </View>
               </View>
             </View>
           </TouchableOpacity>
         )}
+      </View>
 
-        {/* Streak Card */}
-        <View style={styles.streakCard}>
-          <Text style={styles.streakEmoji}>🔥</Text>
-          <Text style={styles.streakTitle}>1 Day Streak!</Text>
-          <Text style={styles.streakSubtext}>You're on fire. Keep it up!</Text>
-        </View>
-
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <Text style={styles.statIcon}>📚</Text>
-            <Text style={styles.statLabel}>MODULES</Text>
-            <Text style={styles.statValue}>{modules?.length || 0}</Text>
+            <View style={[styles.statIconWrapper, {backgroundColor: '#DBEAFE'}]}>
+              <Text style={styles.statIcon}>🔥</Text>
+            </View>
+            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statLabel}>Day Streak</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statIcon}>📝</Text>
-            <Text style={styles.statLabel}>TESTS</Text>
-            <Text style={styles.statValue}>{testsCompleted}</Text>
+            <View style={[styles.statIconWrapper, {backgroundColor: '#DCFCE7'}]}>
+              <Text style={styles.statIcon}>🏆</Text>
+            </View>
+            <Text style={styles.statValue}>{completedCount}</Text>
+            <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statBox}>
-            <Text style={styles.statIcon}>⭐</Text>
-            <Text style={styles.statLabel}>AVG SCORE</Text>
+            <View style={[styles.statIconWrapper, {backgroundColor: '#FCE7F3'}]}>
+              <Text style={styles.statIcon}>⭐</Text>
+            </View>
             <Text style={styles.statValue}>{avgScore}%</Text>
+            <Text style={styles.statLabel}>Avg Score</Text>
           </View>
         </View>
 
         {/* Recommended Next */}
         {recommendedModules.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Recommended Next</Text>
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>Up Next For You</Text>
+              <TouchableOpacity>
+                <Text style={styles.seeAllText}>See All</Text>
+              </TouchableOpacity>
+            </View>
+            
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.recommendedScroll}
             >
-              {recommendedModules.map((mod) => (
+              {recommendedModules.map((mod, index) => (
                 <TouchableOpacity
                   key={mod.id}
                   style={styles.recommendedCard}
                   activeOpacity={0.8}
                   onPress={() => handleModulePress(mod.id)}
                 >
-                  <View style={styles.recommendedImagePlaceholder}>
-                    <Text style={styles.recommendedImageEmoji}>💻</Text>
+                  <View style={[styles.recommendedImage, { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }]}>
+                    <Text style={styles.recommendedImageEmoji}>{index % 2 === 0 ? '💻' : '🚀'}</Text>
                   </View>
                   <View style={styles.recommendedInfo}>
-                    <Text style={styles.recommendedTitle} numberOfLines={2}>
-                      {mod.title}
-                    </Text>
-                    <Text style={styles.recommendedMeta}>
-                      ⏱ {mod.duration}
-                    </Text>
+                    <Text style={styles.recommendedTitle} numberOfLines={2}>{mod.title}</Text>
+                    <View style={styles.recommendedMetaRow}>
+                      <Text style={styles.recommendedMeta}>⏱ {mod.duration}</Text>
+                      <View style={styles.recommendedPlayBtn}>
+                        <Text style={styles.recommendedPlayBtnText}>▶</Text>
+                      </View>
+                    </View>
                   </View>
                 </TouchableOpacity>
               ))}
@@ -206,18 +207,27 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {/* Recent Activity */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
-          <View style={styles.activityCard}>
-            <Text style={styles.activityIcon}>📖</Text>
-            <View style={styles.activityInfo}>
-              <Text style={styles.activityTitle}>Started React Native Fundamentals</Text>
-              <Text style={styles.activityTime}>Today</Text>
+          <View style={styles.activityList}>
+            <View style={styles.activityCard}>
+              <View style={[styles.activityIconBg, { backgroundColor: '#F0FDF4' }]}>
+                <Text style={styles.activityIcon}>✅</Text>
+              </View>
+              <View style={styles.activityInfo}>
+                <Text style={styles.activityTitle}>Completed Assessment</Text>
+                <Text style={styles.activitySubtext}>React Native Fundamentals</Text>
+              </View>
+              <Text style={styles.activityTime}>2h ago</Text>
             </View>
-          </View>
-          <View style={styles.activityCard}>
-            <Text style={styles.activityIcon}>✅</Text>
-            <View style={styles.activityInfo}>
-              <Text style={styles.activityTitle}>Completed "What is React Native?"</Text>
-              <Text style={styles.activityTime}>Today</Text>
+            
+            <View style={styles.activityCard}>
+              <View style={[styles.activityIconBg, { backgroundColor: '#EFF6FF' }]}>
+                <Text style={styles.activityIcon}>📖</Text>
+              </View>
+              <View style={styles.activityInfo}>
+                <Text style={styles.activityTitle}>Started New Module</Text>
+                <Text style={styles.activitySubtext}>Advanced Security</Text>
+              </View>
+              <Text style={styles.activityTime}>1d ago</Text>
             </View>
           </View>
         </View>
@@ -229,235 +239,330 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFC',
   },
-  scrollView: {
-    flex: 1,
+  headerBackground: {
+    backgroundColor: '#0F172A',
+    paddingBottom: 24,
+    borderBottomLeftRadius: 32,
+    borderBottomRightRadius: 32,
+    shadowColor: '#2563EB',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+    position: 'relative',
+    overflow: 'hidden',
   },
-  scrollContent: {
-    paddingBottom: 100,
+  headerGlow1: {
+    position: 'absolute',
+    top: -50,
+    left: -50,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    backgroundColor: 'rgba(59, 130, 246, 0.3)',
+    transform: [{ scaleX: 1.5 }],
   },
-  // Greeting
+  headerGlow2: {
+    position: 'absolute',
+    bottom: -50,
+    right: -20,
+    width: 150,
+    height: 150,
+    borderRadius: 75,
+    backgroundColor: 'rgba(139, 92, 246, 0.25)',
+  },
   greetingRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: spacing.base,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
+    paddingHorizontal: 24,
+    paddingTop: 60, // For status bar + notch
+    paddingBottom: 24,
   },
   greetingTextContainer: {
     flex: 1,
   },
   greetingText: {
     ...typography.h2,
-    color: colors.textMain,
+    color: '#FFFFFF',
+    fontSize: 26,
+    fontWeight: '800',
+    letterSpacing: -0.5,
   },
   greetingSubtext: {
     ...typography.body,
-    color: colors.textSecondary,
-    marginTop: 4,
+    color: '#94A3B8',
+    marginTop: 6,
+    fontSize: 15,
   },
   avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.primaryLight,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(255,255,255,0.1)',
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.2)',
   },
   avatarText: {
-    fontSize: 22,
+    fontSize: 24,
   },
-  // Hero Card
   heroCard: {
-    marginHorizontal: spacing.base,
-    marginBottom: spacing.base,
-    borderRadius: 16,
+    marginHorizontal: 24,
+    borderRadius: 24,
     overflow: 'hidden',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
-  heroGradient: {
-    backgroundColor: colors.primary,
-    borderRadius: 16,
-    padding: spacing.lg,
-    paddingBottom: spacing.base,
+  heroGlass: {
+    padding: 24,
+  },
+  heroTopRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
   },
   heroBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    alignSelf: 'flex-start',
+    backgroundColor: 'rgba(59, 130, 246, 0.2)',
     paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginBottom: spacing.sm,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(59, 130, 246, 0.5)',
   },
   heroBadgeText: {
     ...typography.caption,
-    color: '#FFFFFF',
-    fontWeight: '600',
+    color: '#93C5FD',
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  heroMetaIcon: {
+    fontSize: 20,
   },
   heroTitle: {
     ...typography.h2,
     color: '#FFFFFF',
-    marginBottom: 4,
+    fontSize: 22,
+    marginBottom: 6,
   },
   heroMeta: {
     ...typography.body,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: spacing.md,
+    color: '#94A3B8',
+    marginBottom: 20,
   },
   heroProgressRow: {
-    marginBottom: spacing.sm,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
   },
   heroProgressBar: {
     flex: 1,
+    marginRight: 12,
+  },
+  heroProgressText: {
+    color: '#93C5FD',
+    fontWeight: '700',
+    fontSize: 14,
   },
   heroContinueRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    justifyContent: 'flex-end',
   },
-  heroContinueButton: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+  heroButton: {
+    backgroundColor: '#3B82F6',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 30,
+    shadowColor: '#3B82F6',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  heroContinueText: {
-    ...typography.bodyMedium,
-    color: colors.primary,
-    fontWeight: '600',
+  heroButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '700',
+    fontSize: 14,
   },
-  // Streak Card
-  streakCard: {
-    marginHorizontal: spacing.base,
-    marginBottom: spacing.lg,
-    backgroundColor: '#FEF3C7',
-    borderRadius: 16,
-    padding: spacing.lg,
-    alignItems: 'center',
+  scrollView: {
+    flex: 1,
+    marginTop: -20,
   },
-  streakEmoji: {
-    fontSize: 36,
-    marginBottom: 8,
+  scrollContent: {
+    paddingTop: 40,
+    paddingBottom: 100,
   },
-  streakTitle: {
-    ...typography.h3,
-    color: '#D97706',
-    marginBottom: 4,
-  },
-  streakSubtext: {
-    ...typography.body,
-    color: '#92400E',
-  },
-  // Stats Row
   statsRow: {
     flexDirection: 'row',
-    marginHorizontal: spacing.base,
-    marginBottom: spacing.lg,
-    gap: 12,
+    marginHorizontal: 24,
+    marginBottom: 32,
+    gap: 16,
   },
   statBox: {
     flex: 1,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.base,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
     alignItems: 'center',
-    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.03,
+    shadowRadius: 10,
+    elevation: 2,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  statIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   statIcon: {
-    fontSize: 28,
-    marginBottom: 8,
-  },
-  statLabel: {
-    ...typography.caption,
-    color: colors.textSecondary,
-    fontWeight: '600',
-    letterSpacing: 0.5,
-    marginBottom: 4,
+    fontSize: 20,
   },
   statValue: {
     ...typography.h2,
-    color: colors.textMain,
+    color: '#1E293B',
+    fontSize: 22,
+    marginBottom: 4,
   },
-  // Section
+  statLabel: {
+    ...typography.caption,
+    color: '#64748B',
+    fontWeight: '600',
+  },
   section: {
-    marginBottom: spacing.lg,
+    marginBottom: 32,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    marginBottom: 16,
   },
   sectionTitle: {
     ...typography.h3,
-    color: colors.textMain,
-    paddingHorizontal: spacing.base,
-    marginBottom: spacing.md,
+    color: '#1E293B',
+    fontSize: 20,
   },
-  // Recommended
+  seeAllText: {
+    color: '#3B82F6',
+    fontWeight: '600',
+    fontSize: 14,
+  },
   recommendedScroll: {
-    paddingHorizontal: spacing.base,
-    gap: 12,
+    paddingHorizontal: 24,
+    gap: 16,
   },
   recommendedCard: {
-    width: SCREEN_WIDTH * 0.55,
-    backgroundColor: colors.white,
-    borderRadius: 12,
+    width: SCREEN_WIDTH * 0.65,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
     overflow: 'hidden',
-    elevation: 2,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
   },
-  recommendedImagePlaceholder: {
-    height: 100,
-    backgroundColor: '#1E293B',
+  recommendedImage: {
+    height: 120,
     justifyContent: 'center',
     alignItems: 'center',
   },
   recommendedImageEmoji: {
-    fontSize: 36,
+    fontSize: 48,
   },
   recommendedInfo: {
-    padding: 12,
+    padding: 20,
   },
   recommendedTitle: {
     ...typography.bodyMedium,
-    color: colors.textMain,
-    marginBottom: 4,
+    color: '#1E293B',
+    fontWeight: '700',
+    fontSize: 16,
+    marginBottom: 12,
+    lineHeight: 22,
+  },
+  recommendedMetaRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   recommendedMeta: {
     ...typography.caption,
-    color: colors.textSecondary,
+    color: '#64748B',
+    fontWeight: '500',
   },
-  // Activity
+  recommendedPlayBtn: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: '#EFF6FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  recommendedPlayBtnText: {
+    color: '#3B82F6',
+    fontSize: 12,
+    marginLeft: 2,
+  },
+  activityList: {
+    paddingHorizontal: 24,
+    gap: 12,
+  },
   activityCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: spacing.base,
-    marginBottom: 8,
-    backgroundColor: colors.white,
-    borderRadius: 12,
-    padding: spacing.base,
-    elevation: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 16,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.04,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.02,
+    shadowRadius: 8,
+    elevation: 1,
+    borderWidth: 1,
+    borderColor: '#F1F5F9',
+  },
+  activityIconBg: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
   },
   activityIcon: {
-    fontSize: 24,
-    marginRight: 12,
+    fontSize: 20,
   },
   activityInfo: {
     flex: 1,
   },
   activityTitle: {
-    ...typography.body,
-    color: colors.textMain,
+    ...typography.bodyMedium,
+    color: '#1E293B',
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  activitySubtext: {
+    ...typography.caption,
+    color: '#64748B',
   },
   activityTime: {
     ...typography.caption,
-    color: colors.textSecondary,
-    marginTop: 2,
+    color: '#94A3B8',
+    fontWeight: '500',
   },
 });

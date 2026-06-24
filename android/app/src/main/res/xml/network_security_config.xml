@@ -8,10 +8,10 @@
             <certificates src="system" />
         </trust-anchors>
         <pin-set expiration="2027-01-01">
-            <!-- Primary Pin -->
-            <pin digest="SHA-256">base64_of_primary_spki_hash_here</pin>
+            <!-- Primary Pin (Valid 32-byte base64 placeholder) -->
+            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
             <!-- Backup Pin -->
-            <pin digest="SHA-256">base64_of_backup_spki_hash_here</pin>
+            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
         </pin-set>
     </domain-config>
     

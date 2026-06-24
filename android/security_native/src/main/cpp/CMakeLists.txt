@@ -8,12 +8,21 @@ add_library(
         IntegrityChecks.cpp
         RootChecks.cpp
         FridaChecks.cpp
-        HookFrameworkChecks.cpp)
+        HookFrameworkChecks.cpp
+        SecurityEngine.cpp
+        DexIntegrity.cpp
+        NativeIntegrity.cpp
+        sha256.cpp)
 
 find_library(
         log-lib
         log)
 
+find_library(
+        z-lib
+        z)
+
 target_link_libraries(
         security_checks
-        ${log-lib})
+        ${log-lib}
+        ${z-lib})

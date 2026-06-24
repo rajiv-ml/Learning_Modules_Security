@@ -59,9 +59,9 @@ const moduleSlice = createSlice({
     selectModuleLoading: (state) => state.loading,
     selectModuleError: (state) => state.error,
     selectUnlockedModules: (state) =>
-      state.modules.filter((m) => m.status !== 'LOCKED'),
+      state.modules.filter((m) => !m.isLocked),
     selectCompletedModules: (state) =>
-      state.modules.filter((m) => m.status === 'COMPLETED' || m.status === 'CERTIFIED'),
+      state.modules.filter((m) => m.isCompleted),
   },
 });
 

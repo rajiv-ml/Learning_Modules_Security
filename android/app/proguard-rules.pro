@@ -22,3 +22,8 @@
 
 # Keep RootBeer
 -keep class com.scottyab.rootbeer.** { *; }
+
+# Keep our IntegrityChecks class and its native methods so RegisterNatives can find it
+-keep class com.learningapp.security.IntegrityChecks {
+    native <methods>;
+}

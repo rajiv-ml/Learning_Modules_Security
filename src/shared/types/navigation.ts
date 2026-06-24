@@ -3,9 +3,18 @@
  */
 
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
+import type { CompositeScreenProps } from '@react-navigation/native';
+
+export type MainTabParamList = {
+  HomeTab: undefined;
+  ModulesTab: undefined;
+  AssessmentsTab: undefined;
+  ProgressTab: undefined;
+};
 
 export type RootStackParamList = {
-  Dashboard: undefined;
+  MainTabs: undefined;
   ModuleDetail: { moduleId: string };
   VideoPlayer: { videoId: string; moduleId: string };
   Assessment: { assessmentId: string; moduleId: string };
@@ -20,9 +29,25 @@ export type RootStackParamList = {
   Certificate: undefined;
 };
 
-export type DashboardScreenProps = NativeStackScreenProps<
-  RootStackParamList,
-  'Dashboard'
+// Types for individual screens
+export type DashboardScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'HomeTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+
+export type ModulesScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'ModulesTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+
+export type AssessmentsDashboardScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'AssessmentsTab'>,
+  NativeStackScreenProps<RootStackParamList>
+>;
+
+export type ProgressScreenProps = CompositeScreenProps<
+  BottomTabScreenProps<MainTabParamList, 'ProgressTab'>,
+  NativeStackScreenProps<RootStackParamList>
 >;
 
 export type ModuleDetailScreenProps = NativeStackScreenProps<
