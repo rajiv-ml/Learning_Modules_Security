@@ -7,6 +7,26 @@ class IOSSecurityEngine: NSObject {
     
     // MARK: - Core Risk Evaluator
     
+    override init() {
+        super.init()
+        #if !DEBUG
+        disableDebugging()
+        #endif
+    }
+    
+    private func disableDebugging() {
+        typealias ptraceType = @convention(c) (CInt, pid_t, CInt, CInt) -> CInt
+        let handle = dlopen(nil, RTLD_LAZY)
+        guard handle != nil else { return }
+        
+        if let ptr = dlsym(handle, "ptrace") {
+            let ptrace = unsafeBitCast(ptr, to: ptraceType.self)
+            let PT_DENY_ATTACH: CInt = 31
+            _ = ptrace(PT_DENY_ATTACH, 0, 0, 0)
+        }
+        dlclose(handle)
+    }
+    
     @objc
     func getSecurityRiskLevel(_ resolve: @escaping RCTPromiseResolveBlock, reject: @escaping RCTPromiseRejectBlock) {
         var riskLevel = "SAFE"

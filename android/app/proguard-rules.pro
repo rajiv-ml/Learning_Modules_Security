@@ -14,16 +14,34 @@
     native <methods>;
 }
 
-# Keep our Security Telemetry models so they aren't mangled before JSON conversion
--keep class com.learningapp.security.SecurityTelemetry { *; }
+# Keep ALL security classes - R8 must NOT rename or strip any of these
+# because they are accessed via JNI (FindClass) and React Native reflection
+-keep class com.learningapp.security.** { *; }
 
 # Keep Play Integrity
 -keep class com.google.android.play.core.integrity.** { *; }
+-keep class com.google.android.gms.** { *; }
 
 # Keep RootBeer
 -keep class com.scottyab.rootbeer.** { *; }
 
-# Keep our IntegrityChecks class and its native methods so RegisterNatives can find it
--keep class com.learningapp.security.IntegrityChecks {
-    native <methods>;
-}
+# React Native rules
+-keep class com.facebook.react.** { *; }
+-keep class com.facebook.soloader.** { *; }
+-keep class com.facebook.yoga.** { *; }
+-keep class com.facebook.hermes.** { *; }
+-keep class com.facebook.react.turbomodule.** { *; }
+-keep class com.facebook.fbreact.** { *; }
+-keep class com.facebook.jni.** { *; }
+-keep class com.facebook.systrace.** { *; }
+
+# Keep the MainApplication class
+-keep class com.learningapp.MainApplication { *; }
+-keep class com.learningapp.MainActivity { *; }
+
+# Keep BuildConfig
+-keep class com.learningapp.BuildConfig { *; }
+
+# Don't warn about missing optional dependencies
+-dontwarn com.google.android.play.core.**
+-dontwarn com.scottyab.rootbeer.**

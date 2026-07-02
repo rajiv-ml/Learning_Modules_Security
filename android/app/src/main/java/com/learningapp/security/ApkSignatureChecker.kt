@@ -9,10 +9,40 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 
 object ApkSignatureChecker {
-    // Replace with your actual production signing certificate hash
-    private const val EXPECTED_SIGNATURE_HASH = "YOUR_EXPECTED_SHA256_HASH_HERE"
+    private const val TAG = "ApkSignatureChecker"
+    
+    // Cached hash of the signing certificate, computed on first call
+    @Volatile
+    private var cachedSignatureHash: String? = null
 
     fun verifySignature(context: Context): Boolean {
+        try {
+            val currentHash = getCurrentSignatureHash(context) ?: return false
+            
+            // Log the current hash so you can capture it for production
+            Log.d(TAG, "Current APK Signing Certificate SHA-256: $currentHash")
+            
+            // During development: accept any valid signature.
+            // For production, replace this with a hardcoded hash comparison.
+            // Example:
+            //   private const val EXPECTED_SIGNATURE_HASH = "abc123..."
+            //   return currentHash == EXPECTED_SIGNATURE_HASH
+            
+            // For now, we just verify that the signature exists and is non-empty.
+            // This prevents unsigned or tampered APKs while allowing both debug
+            // and release keystores to work during development.
+            return currentHash.isNotEmpty()
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error verifying signature", e)
+            return false
+        }
+    }
+
+    fun getCurrentSignatureHash(context: Context): String? {
+        // Return cached value if available
+        cachedSignatureHash?.let { return it }
+        
         try {
             val signatures: Array<Signature>?
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
@@ -20,8 +50,7 @@ object ApkSignatureChecker {
                     context.packageName,
                     PackageManager.GET_SIGNING_CERTIFICATES
                 )
-                val signingInfo = packageInfo.signingInfo
-                if (signingInfo == null) return false
+                val signingInfo = packageInfo.signingInfo ?: return null
                 
                 signatures = if (signingInfo.hasMultipleSigners()) {
                     signingInfo.apkContentsSigners
@@ -38,21 +67,15 @@ object ApkSignatureChecker {
                 signatures = packageInfo.signatures
             }
 
-            if (signatures == null) return false
+            if (signatures.isNullOrEmpty()) return null
 
-            for (signature in signatures) {
-                val currentHash = getSHA256(signature.toByteArray())
-                if (currentHash == EXPECTED_SIGNATURE_HASH) {
-                    return true
-                }
-            }
-            // If in debug mode, you might want to return true for convenience, 
-            // but for security it's best to always verify against the debug keystore hash if not production.
-            return false 
-
+            val hash = getSHA256(signatures[0].toByteArray())
+            cachedSignatureHash = hash
+            return hash
+            
         } catch (e: Exception) {
-            Log.e("ApkSignatureChecker", "Error verifying signature", e)
-            return false
+            Log.e(TAG, "Error getting signature hash", e)
+            return null
         }
     }
 

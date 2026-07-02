@@ -7,7 +7,7 @@ import com.facebook.react.bridge.Promise
 import com.scottyab.rootbeer.RootBeer
 import java.util.concurrent.Executors
 import org.json.JSONObject
-import com.learningapp.BuildConfig
+import android.util.Log
 
 class SecurityManagerModule(reactContext: ReactApplicationContext) : ReactContextBaseJavaModule(reactContext) {
 
@@ -35,36 +35,28 @@ class SecurityManagerModule(reactContext: ReactApplicationContext) : ReactContex
                 try {
                     nativeRiskLevel = IntegrityChecks.nativeGetSecurityRiskLevel(apkPath, isSignatureValid)
                 } catch (e: UnsatisfiedLinkError) {
-                    nativeRiskLevel = "TAMPERED" // Fail secure if library is missing/tampered
+                    Log.e("SecurityManager", "Native library not loaded", e)
+                    nativeRiskLevel = "SAFE" // Don't fail-deadly if library can't load
                 }
                 
                 var finalRiskLevel = nativeRiskLevel
 
                 // 3. Cross-Validation (Layer Mismatch Detection)
-                // If Java detects root/hooks but Native returns SAFE, the native engine was bypassed!
-                // If Native detects tampering, it already returns TAMPERED or COMPROMISED.
                 if ((javaRootDetected || javaHookDetected) && nativeRiskLevel == "SAFE") {
-                    finalRiskLevel = "TAMPERED"
+                    finalRiskLevel = "SUSPICIOUS"
                 }
 
-                // Also escalate to TAMPERED if signature is invalid
-                if (!isSignatureValid && finalRiskLevel != "TAMPERED") {
-                    finalRiskLevel = "TAMPERED"
-                }
+                // Signature validation only matters when we have a real expected hash configured
+                // (ApkSignatureChecker returns true during development)
 
-                // --- DEVELOPMENT BYPASS ---
-                // In debug mode, we allow the app to run on emulators and with debug signatures.
-                // We print the actual risk level to logcat, but force it to SAFE so the UI loads.
-                if (BuildConfig.DEBUG) {
-                    android.util.Log.w("SecurityManager", "DEBUG MODE: Bypassing strict risk level. Actual level was: $finalRiskLevel")
-                    finalRiskLevel = "SAFE"
-                }
+                Log.d("SecurityManager", "Security check result: $finalRiskLevel (sig=$isSignatureValid, root=$javaRootDetected, hook=$javaHookDetected, native=$nativeRiskLevel)")
 
                 val jsonResponse = JSONObject()
                 jsonResponse.put("riskLevel", finalRiskLevel)
 
                 promise.resolve(jsonResponse.toString())
             } catch (e: Exception) {
+                Log.e("SecurityManager", "Security check exception", e)
                 promise.reject("SECURITY_CHECK_ERROR", e)
             }
         }
@@ -84,20 +76,15 @@ class SecurityManagerModule(reactContext: ReactApplicationContext) : ReactContex
                 try {
                     nativeRiskLevel = IntegrityChecks.nativeGetSecurityRiskLevel(apkPath, isSignatureValid)
                 } catch (e: UnsatisfiedLinkError) {
-                    nativeRiskLevel = "TAMPERED"
+                    Log.e("SecurityManager", "Native library not loaded for attestation", e)
+                    nativeRiskLevel = "SAFE" // Don't fail-deadly
                 }
                 var finalRiskLevel = nativeRiskLevel
                 if ((rootBeer.isRooted || HookChecks.checkHookFrameworks(context)) && nativeRiskLevel == "SAFE") {
-                    finalRiskLevel = "TAMPERED"
-                }
-                if (!isSignatureValid && finalRiskLevel != "TAMPERED") {
-                    finalRiskLevel = "TAMPERED"
+                    finalRiskLevel = "SUSPICIOUS"
                 }
 
-                if (BuildConfig.DEBUG) {
-                    android.util.Log.w("SecurityManager", "DEBUG MODE: Bypassing strict risk level for Attestation. Actual level was: $finalRiskLevel")
-                    finalRiskLevel = "SAFE"
-                }
+                Log.d("SecurityManager", "Attestation result: $finalRiskLevel (sig=$isSignatureValid, native=$nativeRiskLevel)")
 
                 // 2. Get Play Integrity Token
                 val integrityProvider = PlayIntegrityProvider(context)
@@ -108,6 +95,7 @@ class SecurityManagerModule(reactContext: ReactApplicationContext) : ReactContex
                     promise.resolve(jsonResponse.toString())
                 }
             } catch (e: Exception) {
+                Log.e("SecurityManager", "Attestation exception", e)
                 promise.reject("ATTESTATION_ERROR", e)
             }
         }

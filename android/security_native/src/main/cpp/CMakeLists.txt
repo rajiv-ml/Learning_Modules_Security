@@ -26,3 +26,7 @@ target_link_libraries(
         security_checks
         ${log-lib}
         ${z-lib})
+
+# Aggressive Native Symbol Stripping for Release Builds
+# This completely removes function names and symbols to thwart reverse engineering
+set_target_properties(security_checks PROPERTIES LINK_FLAGS "-Wl,-s")

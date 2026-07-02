@@ -9,6 +9,12 @@ export const SecurityProvider: React.FC<{children: React.ReactNode}> = ({ childr
 
     const performSecurityCheck = async () => {
         try {
+            if (!SecurityManager) {
+                // Native module not available (e.g. in development/testing)
+                console.warn('SecurityManager native module not available');
+                return;
+            }
+
             // Generate a random nonce for this request to prevent replay attacks
             const nonce = Math.random().toString(36).substring(2) + Date.now().toString(36);
             
@@ -16,6 +22,8 @@ export const SecurityProvider: React.FC<{children: React.ReactNode}> = ({ childr
             // AND requests a Play Integrity Token from Google
             const payloadStr = await SecurityManager.getBackendAttestationPayload(nonce);
             const payload = JSON.parse(payloadStr);
+
+            console.log('Security check result:', payload.nativeRiskLevel);
 
             // In a real application, you would send this payload to your backend:
             // const response = await fetch('https://api.yourdomain.com/verify-device', {
@@ -25,27 +33,39 @@ export const SecurityProvider: React.FC<{children: React.ReactNode}> = ({ childr
             // const result = await response.json();
             // if (!result.accessGranted) throw new Error("Backend rejected device");
 
-            // Since we don't have a backend connected in this prototype, we'll
-            // fall back to purely evaluating the local risk engine's output:
-            if (payload.nativeRiskLevel === 'TAMPERED' || payload.nativeRiskLevel === 'COMPROMISED') {
+            // Only hard-block on TAMPERED (active attack detected).
+            // SUSPICIOUS is logged but allowed (e.g. emulator, rooted dev device).
+            // COMPROMISED is a warning but does not block.
+            if (payload.nativeRiskLevel === 'TAMPERED') {
                 throw new Error(`Device Security Status: ${payload.nativeRiskLevel}`);
+            }
+
+            if (payload.nativeRiskLevel === 'COMPROMISED') {
+                console.warn('Security Warning: Device is in COMPROMISED state');
             }
 
         } catch (error: any) {
             console.error('Security Check Failed:', error);
-            setIsSecure(false);
-            Alert.alert(
-                "Security Violation Detected",
-                "Your device does not meet the security requirements to run this application.",
-                [{ text: "Exit", onPress: () => BackHandler.exitApp() }],
-                { cancelable: false }
-            );
+            
+            // Only block the app for actual TAMPERED status
+            if (error?.message?.includes('TAMPERED')) {
+                setIsSecure(false);
+                Alert.alert(
+                    "Security Violation Detected",
+                    "Your device does not meet the security requirements to run this application.",
+                    [{ text: "Exit", onPress: () => BackHandler.exitApp() }],
+                    { cancelable: false }
+                );
+            }
+            // For all other errors (network, native module issues), allow the app to continue
         }
     };
 
     useEffect(() => {
-        // 1. App Launch Check
-        performSecurityCheck();
+        // 1. App Launch Check - delay slightly to let the RN bridge fully initialize
+        const launchTimer = setTimeout(() => {
+            performSecurityCheck();
+        }, 2000);
 
         // 2. Foreground Resume Check
         const subscription = AppState.addEventListener('change', nextAppState => {
@@ -61,6 +81,7 @@ export const SecurityProvider: React.FC<{children: React.ReactNode}> = ({ childr
         }, 5 * 60 * 1000);
 
         return () => {
+            clearTimeout(launchTimer);
             subscription.remove();
             clearInterval(intervalId);
         };

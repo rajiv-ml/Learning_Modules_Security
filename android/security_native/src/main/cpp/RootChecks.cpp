@@ -6,6 +6,7 @@
 #include <sys/system_properties.h>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
 #include "Obfuscate.h"
 
 bool checkFileExists(const char* path) {
@@ -22,7 +23,11 @@ bool checkRootFiles() {
         OBFUSCATE_STR("/data/local/su"),
         OBFUSCATE_STR("/data/local/bin/su"),
         OBFUSCATE_STR("/data/local/xbin/su"),
-        OBFUSCATE_STR("/su/bin/su")
+        OBFUSCATE_STR("/su/bin/su"),
+        // Busybox additions
+        OBFUSCATE_STR("/system/bin/busybox"),
+        OBFUSCATE_STR("/system/xbin/busybox"),
+        OBFUSCATE_STR("/sbin/busybox")
     };
     for (const auto& path : paths) {
         if (checkFileExists(path.c_str())) {
@@ -37,7 +42,9 @@ bool checkMagisk() {
         OBFUSCATE_STR("/sbin/.magisk"),
         OBFUSCATE_STR("/data/adb/modules"),
         OBFUSCATE_STR("/data/adb/magisk"),
-        OBFUSCATE_STR("/data/adb/magisk.db")
+        OBFUSCATE_STR("/data/adb/magisk.db"),
+        // LSPosed addition
+        OBFUSCATE_STR("/data/adb/lspd")
     };
     for (const auto& path : paths) {
         if (checkFileExists(path.c_str())) {
@@ -54,8 +61,18 @@ bool checkZygisk() {
         char line[512];
         std::string zygiskStr = OBFUSCATE_STR("zygisk");
         std::string magiskStr = OBFUSCATE_STR("magisk");
+        std::string lspdStr = OBFUSCATE_STR("lspd");
+        std::string lsposedStr = OBFUSCATE_STR("lsposed");
+        
         while (fgets(line, sizeof(line), fp)) {
-            if (strstr(line, zygiskStr.c_str()) != nullptr || strstr(line, magiskStr.c_str()) != nullptr) {
+            // Lowercase the line for case-insensitive check
+            for(int i = 0; line[i]; i++) {
+                line[i] = tolower(line[i]);
+            }
+            if (strstr(line, zygiskStr.c_str()) != nullptr || 
+                strstr(line, magiskStr.c_str()) != nullptr ||
+                strstr(line, lspdStr.c_str()) != nullptr ||
+                strstr(line, lsposedStr.c_str()) != nullptr) {
                 found = true;
                 break;
             }
@@ -86,6 +103,10 @@ bool checkDangerousProperties() {
         if (strcmp(value, unlocked.c_str()) == 0) return true;
     }
     
+    if (__system_property_get(OBFUSCATE_STR("ro.boot.verifiedbootstate").c_str(), value) > 0) {
+        if (strcmp(value, "orange") == 0 || strcmp(value, "yellow") == 0) return true;
+    }
+    
     return false;
 }
 
@@ -106,6 +127,32 @@ bool checkSuspiciousMounts() {
         fclose(fp);
     }
     return suspicious;
+}
+
+bool checkSuspiciousDirectories() {
+    const std::string paths[] = {
+        OBFUSCATE_STR("/data/data/com.topjohnwu.magisk"),
+        OBFUSCATE_STR("/data/data/eu.chainfire.supersu")
+    };
+    for (const auto& path : paths) {
+        if (access(path.c_str(), F_OK) == 0) {
+            return true; // Weak signal, handled via scoring
+        }
+    }
+    return false;
+}
+
+bool checkSELinux() {
+    FILE* fp = fopen(OBFUSCATE_STR("/sys/fs/selinux/enforce").c_str(), "r");
+    if (fp) {
+        char status;
+        if (fread(&status, 1, 1, fp) == 1) {
+            fclose(fp);
+            return status == '0'; // 0 means Permissive, which is dangerous
+        }
+        fclose(fp);
+    }
+    return false;
 }
 
 bool checkEmulator() {
@@ -135,22 +182,37 @@ bool checkEmulator() {
 }
 
 bool checkCloneApps() {
-    // Clone apps (Parallel Space, Dual Apps) often run the app from a strange directory
-    // or under a secondary user id like /data/user/999/ instead of /data/user/0/
+    // 1. UID Analysis
+    // Normal Android App UIDs are typically 10000 + x. Secondary users are: userId * 100000 + appId
+    uid_t uid = getuid();
+    int userId = uid / 100000;
+    // Work profiles are typically 10-13. 999 is a known heuristic for hidden/clone spaces on some OEMs
+    if (userId == 999) return true;
+
+    // 2. Installation Path Validation & Known Clone Packages
     char cwd[1024];
     if (getcwd(cwd, sizeof(cwd)) != nullptr) {
         std::string currentPath(cwd);
-        // Typical path is /data/user/0/com.learningapp or /data/data/com.learningapp
-        if (currentPath.find(OBFUSCATE_STR("/data/user/0/")) == std::string::npos &&
-            currentPath.find(OBFUSCATE_STR("/data/data/")) == std::string::npos &&
-            currentPath.find(OBFUSCATE_STR("/data/app/")) == std::string::npos) {
-            
-            // If it's in /data/user/999/ or /data/user/10/, it might be a clone app
-            if (currentPath.find(OBFUSCATE_STR("/data/user/")) != std::string::npos) {
+        // Lowercase for checking
+        for(auto& c : currentPath) {
+            c = tolower(c);
+        }
+        
+        const std::string suspiciousKeywords[] = {
+            OBFUSCATE_STR("virtual"),
+            OBFUSCATE_STR("parallel"),
+            OBFUSCATE_STR("dualspace"),
+            OBFUSCATE_STR("clone"),
+            OBFUSCATE_STR("com.lbe.parallel"),
+            OBFUSCATE_STR("com.parallel.space"),
+            OBFUSCATE_STR("com.excelliance.multiaccounts")
+        };
+        
+        for (const auto& keyword : suspiciousKeywords) {
+            if (currentPath.find(keyword) != std::string::npos) {
                 return true;
             }
         }
     }
     return false;
 }
-
