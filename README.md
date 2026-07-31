@@ -23,6 +23,61 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 
 ---
 
+## 🏛️ Comprehensive Security Architecture
+
+Our Defense-in-Depth model ensures a failure at any single layer is caught by subsequent enforcement layers:
+
+```text
+Before Installation
+│
+├─ CI/CD Security
+├─ Secret Scanning
+├─ SAST (Static Analysis)
+├─ Dependency Audits
+│
+During Installation
+│
+├─ APK Signature Validation
+│
+App Launch
+│
+├─ Root / Jailbreak Detection
+├─ Frida / Framework Detection
+├─ Hook Detection
+│
+Runtime
+│
+├─ RASP Background Daemon
+├─ Debugger Detection
+├─ Memory Integrity Verification
+│
+Network
+│
+├─ TLS Certificate Pinning
+├─ HMAC Request Signing
+│
+Authentication
+│
+├─ iOS Keychain / Android Keystore
+├─ Refresh Token Rotation
+├─ Token Reuse / Theft Detection
+│
+Backend Interaction
+│
+├─ Google Play Integrity API
+├─ Apple DeviceCheck Attestation
+├─ Unified Risk Engine
+│
+Data & Content Protection
+│
+├─ Local Backup Protection
+├─ FLAG_SECURE (Screenshot Block)
+├─ Screen Recording Blur (iOS)
+└─ Video Watermarking
+```
+
+---
+
 ##  Architecture Workflows
 
 ### Token Lifecycle & Replay Detection
