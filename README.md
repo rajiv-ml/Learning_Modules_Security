@@ -10,7 +10,13 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 
 ##  Key Features
 
-- **Runtime Application Self-Protection (RASP)**: Actively monitors device integrity (Root/Jailbreak, Frida Hooking, Debuggers, Emulator usage) and dynamically adjusts risk scores.
+- **Runtime Application Self-Protection (RASP)**: The `SecurityPolicyEngine` continuously monitors the device at runtime, utilizing the `jail-monkey` and `react-native-device-info` bridges to detect:
+  - 🛑 **Root / Jailbreak Detection**: Detects `su` binaries, Magisk, and compromised OS partitions.
+  - 🪝 **Hooking & Instrumentation**: Detects Frida, Xposed, and Cydia Substrate running in memory.
+  - 🐞 **Debugger Attachment**: Blocks active USB debugging and network debugging sessions.
+  - 📱 **Emulator Detection**: Restricts production environments from running on generic x86 emulators.
+  - 📍 **Spoofing Detection**: Detects mock GPS locations to prevent geographical bypasses.
+- **Backend Play Integrity Attestation**: Secure cryptographic handshake bridging the client to the Mock Security Server, utilizing nonces to prevent replay attacks during app initialization.
 - **Zero-Trust Token Rotation**: Mathematical binding of every session to the physical device it was initiated on, preventing token theft and replay attacks.
 - **Aggressive Credential Scrubbing**: Redacts sensitive JWTs and UUIDs from memory buffers and Native logs before they reach centralized aggregators (Datadog, Crashlytics).
 - **Optimized Asset Pipeline**: 97% reduction in asset payload over the Metro Bundler bridge, ensuring sub-second cold boot and fluid video playback.
