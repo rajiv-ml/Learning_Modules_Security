@@ -1,4 +1,4 @@
-# 🛡️ Enterprise Learning App: Zero-Trust Security Architecture
+# Enterprise Learning App: Security Architecture
 
 ![React Native](https://img.shields.io/badge/React_Native-0.84.0-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=for-the-badge&logo=typescript)
@@ -8,7 +8,7 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 
 ---
 
-## ✨ Key Features
+##  Key Features
 
 - **Runtime Application Self-Protection (RASP)**: Actively monitors device integrity (Root/Jailbreak, Frida Hooking, Debuggers, Emulator usage) and dynamically adjusts risk scores.
 - **Zero-Trust Token Rotation**: Mathematical binding of every session to the physical device it was initiated on, preventing token theft and replay attacks.
@@ -17,7 +17,7 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 
 ---
 
-## 🔄 Architecture Workflows
+##  Architecture Workflows
 
 ### Token Lifecycle & Replay Detection
 
@@ -76,7 +76,7 @@ sequenceDiagram
 
 ---
 
-## 🧪 Security Validation Matrix
+##  Security Validation Matrix
 
 To ensure the architectural theory held up to practical exploitation, we built a UI testing suite directly into the application (accessible at the bottom of the Dashboard). All tests pass successfully:
 
@@ -89,7 +89,7 @@ To ensure the architectural theory held up to practical exploitation, we built a
 
 ---
 
-## 🚀 Getting Started
+##  Getting Started
 
 ### 1. Start the Security Mock Backend
 
