@@ -173,5 +173,4 @@ npm run android
 # or
 npm run ios
 ```
-<img width="1080" height="2400" alt="Screenshot_1785499122" src="https://github.com/user-attachments/assets/75179406-5a8b-4fbd-b0e5-f3c6ccedbb90" />
 
