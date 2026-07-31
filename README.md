@@ -2,7 +2,6 @@
 
 ![React Native](https://img.shields.io/badge/React_Native-0.84.0-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=for-the-badge&logo=typescript)
-![Security](https://img.shields.io/badge/Security-Zero_Trust-success?style=for-the-badge&logo=security)
 
 A high-performance, enterprise-grade React Native application demonstrating advanced **Zero-Trust Token Architecture**, **Runtime Application Self-Protection (RASP)**, and **Cryptographic Device Binding**.
 
@@ -11,11 +10,11 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 ##  Key Features
 
 - **Runtime Application Self-Protection (RASP)**: The `SecurityPolicyEngine` continuously monitors the device at runtime, utilizing the `jail-monkey` and `react-native-device-info` bridges to detect:
-  - 🛑 **Root / Jailbreak Detection**: Detects `su` binaries, Magisk, and compromised OS partitions.
-  - 🪝 **Hooking & Instrumentation**: Detects Frida, Xposed, and Cydia Substrate running in memory.
-  - 🐞 **Debugger Attachment**: Blocks active USB debugging and network debugging sessions.
-  - 📱 **Emulator Detection**: Restricts production environments from running on generic x86 emulators.
-  - 📍 **Spoofing Detection**: Detects mock GPS locations to prevent geographical bypasses.
+  -  **Root / Jailbreak Detection**: Detects `su` binaries, Magisk, and compromised OS partitions.
+  -  **Hooking & Instrumentation**: Detects Frida, Xposed, and Cydia Substrate running in memory.
+  -  **Debugger Attachment**: Blocks active USB debugging and network debugging sessions.
+  -  **Emulator Detection**: Restricts production environments from running on generic x86 emulators.
+  -  **Spoofing Detection**: Detects mock GPS locations to prevent geographical bypasses.
 - **Backend Play Integrity Attestation**: Secure cryptographic handshake bridging the client to the Mock Security Server, utilizing nonces to prevent replay attacks during app initialization.
 - **Zero-Trust Token Rotation**: Mathematical binding of every session to the physical device it was initiated on, preventing token theft and replay attacks.
 - **Aggressive Credential Scrubbing**: Redacts sensitive JWTs and UUIDs from memory buffers and Native logs before they reach centralized aggregators (Datadog, Crashlytics).
@@ -23,7 +22,7 @@ A high-performance, enterprise-grade React Native application demonstrating adva
 
 ---
 
-## 🏛️ Comprehensive Security Architecture
+##  Comprehensive Security Architecture
 
 Our Defense-in-Depth model ensures a failure at any single layer is caught by subsequent enforcement layers:
 
@@ -174,3 +173,5 @@ npm run android
 # or
 npm run ios
 ```
+<img width="176" height="378" alt="image" src="https://github.com/user-attachments/assets/cf0d9776-e340-4a76-ab86-6668faa2f80d" />
+
