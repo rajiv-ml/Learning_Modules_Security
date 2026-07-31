@@ -3,6 +3,10 @@
 ![React Native](https://img.shields.io/badge/React_Native-0.84.0-blue?style=for-the-badge&logo=react)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue?style=for-the-badge&logo=typescript)
 
+<p align="center">
+  <img src="docs/dashboard.png" width="250" alt="Learning App Dashboard" style="border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);" />
+</p>
+
 A high-performance, enterprise-grade React Native application demonstrating advanced **Zero-Trust Token Architecture**, **Runtime Application Self-Protection (RASP)**, and **Cryptographic Device Binding**.
 
 ---
