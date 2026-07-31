@@ -14,6 +14,8 @@ export type MainTabParamList = {
 };
 
 export type RootStackParamList = {
+  Login: undefined;
+  Lock: undefined;
   MainTabs: undefined;
   ModuleDetail: { moduleId: string };
   VideoPlayer: { videoId: string; moduleId: string };

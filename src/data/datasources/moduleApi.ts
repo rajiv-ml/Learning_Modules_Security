@@ -17,14 +17,12 @@ export const moduleApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getModules: builder.query<Module[], void>({
       queryFn: async (_body) => {
-        await delay(500);
         return { data: modulesMock.data as Module[] };
       },
       providesTags: ['Modules'],
     }),
     getModuleDetails: builder.query<ModuleDetail, string>({
       queryFn: async (moduleId) => {
-        await delay(500);
         const detail = (moduleDetailsMock as any)[moduleId];
         if (!detail) {
           return { error: { status: 404, data: 'Not found' } };

@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <network-security-config>
     <domain-config>
-        <!-- Replace with your actual production API domain -->
-        <domain includeSubdomains="true">api.yourlearningapp.com</domain>
-        <trust-anchors>
-            <!-- Only trust system CAs, ignoring user-installed certificates (Charles Proxy etc) -->
-            <certificates src="system" />
-        </trust-anchors>
-        <pin-set expiration="2027-01-01">
-            <!-- Primary Pin (Valid 32-byte base64 placeholder) -->
-            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
-            <!-- Backup Pin -->
-            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+        <domain includeSubdomains="true">api.learningapp.com</domain>
+        <pin-set expiration="2028-01-01">
+            <!-- Primary Pin (e.g., current Leaf or Intermediate Certificate) -->
+            <pin digest="SHA-256">7HIpactkIAq2Y49orFOOQKurWxmmSFZhBCoQYcRhJ3Y=</pin>
+            <!-- Backup Pin (Offline generated key pair for next rotation) -->
+            <pin digest="SHA-256">fwza0LRMXouZHRC8Ei+4PyuldPDcf3UKgO/04cDM1oE=</pin>
         </pin-set>
     </domain-config>
-    
-    <!-- For localhost dev during RN debug -->
-    <domain-config cleartextTrafficPermitted="true">
-        <domain includeSubdomains="true">10.0.2.2</domain>
-        <domain includeSubdomains="true">localhost</domain>
-    </domain-config>
+    <base-config cleartextTrafficPermitted="true">
+        <trust-anchors>
+            <certificates src="system" />
+        </trust-anchors>
+    </base-config>
 </network-security-config>

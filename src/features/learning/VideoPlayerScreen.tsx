@@ -90,8 +90,25 @@ export const VideoPlayerScreen: React.FC<VideoPlayerScreenProps> = ({
       dispatch(markLessonCompleted({
         lessonId: videoId,
         moduleId,
-        title: videoData?.title || 'Video'
+        title: videoData?.title || 'Video',
+        totalVideos: moduleDetail?.videos?.length || 1
       }));
+
+      // Auto-redirect to assessment if this was the last video
+      if (moduleDetail?.videos && moduleDetail.assessment) {
+        const otherVideos = moduleDetail.videos.filter(v => v.id !== videoId);
+        const allOthersCompleted = otherVideos.every(v => v.isCompleted);
+        
+        if (allOthersCompleted) {
+          // Add a slight delay for better UX before jumping
+          setTimeout(() => {
+            navigation.replace('Assessment', {
+              moduleId,
+              assessmentId: moduleDetail.assessment!.id,
+            });
+          }, 1000);
+        }
+      }
     }
   };
 

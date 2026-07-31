@@ -7,13 +7,14 @@ import {
   TextInput,
   TouchableOpacity,
   StatusBar,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { Loader } from '@shared/components/Loader/Loader';
 import { ErrorState } from '@shared/components/ErrorState/ErrorState';
 import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
-import { useGetModulesQuery } from '@data/datasources/moduleApi';
+import { useDynamicModules, MODULE_IMAGES } from '../../hooks/useDynamicModules';
 import { useAppDispatch } from '@app/store';
 import { setSelectedModule } from '@app/store/slices/moduleSlice';
 import { colors } from '@shared/theme/colors';
@@ -24,7 +25,7 @@ const CATEGORIES = ['All', 'Mobile', 'Frontend', 'Backend', 'Cloud'];
 export const ModulesScreen: React.FC = () => {
   const navigation = useNavigation<any>();
   const dispatch = useAppDispatch();
-  const { data: modules, isLoading, error, refetch } = useGetModulesQuery();
+  const { modules, isLoading, error, refetch } = useDynamicModules();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
@@ -129,14 +130,19 @@ export const ModulesScreen: React.FC = () => {
               onPress={() => handleModulePress(mod.id)}
             >
               {/* Thumbnail */}
-              <View style={[
-                styles.moduleImage, 
-                mod.isLocked ? styles.moduleImageLocked : { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }
-              ]}>
-                <Text style={styles.moduleImageEmoji}>
-                  {mod.isLocked ? '🔒' : (index % 2 === 0 ? '💻' : '📱')}
-                </Text>
+              <View style={styles.moduleImageContainer}>
+                <Image 
+                  source={MODULE_IMAGES[mod.id] || require('../../assets/images/react-native.png')} 
+                  style={[styles.moduleImage, mod.isLocked && styles.moduleImageLocked]}
+                  resizeMode="cover"
+                />
                 
+                {mod.isLocked && (
+                  <View style={styles.lockOverlay}>
+                    <Text style={styles.lockEmoji}>🔒</Text>
+                  </View>
+                )}
+
                 {mod.isCompleted && (
                   <View style={styles.completedBadge}>
                     <Text style={styles.completedBadgeText}>✓ Done</Text>
@@ -332,19 +338,30 @@ const styles = StyleSheet.create({
     opacity: 0.65,
     backgroundColor: '#F8FAFC',
   },
-  moduleImage: {
+  moduleImageContainer: {
     width: 100,
     height: 120,
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
+    overflow: 'hidden',
+  },
+  moduleImage: {
+    width: '100%',
+    height: '100%',
   },
   moduleImageLocked: {
-    backgroundColor: '#CBD5E1',
+    opacity: 0.3,
   },
-  moduleImageEmoji: {
-    fontSize: 40,
+  lockOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(241, 245, 249, 0.4)',
+  },
+  lockEmoji: {
+    fontSize: 32,
   },
   completedBadge: {
     position: 'absolute',

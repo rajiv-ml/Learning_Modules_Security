@@ -82,6 +82,7 @@ const progressSlice = createSlice({
         lessonId: string;
         moduleId: string;
         title: string;
+        totalVideos: number;
       }>,
     ) {
       if (!state.completedLessons.includes(action.payload.lessonId)) {
@@ -113,16 +114,19 @@ const progressSlice = createSlice({
           state.moduleProgress[modId] = {
             moduleId: modId,
             completedLessons: 0,
-            totalLessons: 10, // Default mock value
+            totalLessons: action.payload.totalVideos || 1,
             lessonCompletionPercentage: 0,
             assessmentScore: 0,
             unlocked: true,
           };
         }
         state.moduleProgress[modId]!.completedLessons += 1;
+        state.moduleProgress[modId]!.totalLessons = action.payload.totalVideos || 1; // Update in case it changed
         const mp = state.moduleProgress[modId]!;
-        mp.lessonCompletionPercentage =
-          (mp.completedLessons / mp.totalLessons) * 100;
+        mp.lessonCompletionPercentage = Math.min(
+          100,
+          Math.round((mp.completedLessons / mp.totalLessons) * 100)
+        );
       }
     },
     initializeModuleProgress(

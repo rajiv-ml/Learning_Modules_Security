@@ -7,13 +7,19 @@ import {
   TouchableOpacity,
   StatusBar,
   Dimensions,
+  Image,
+  Alert,
 } from 'react-native';
+import { api } from '../../core/security/apiInterceptor';
+import SessionManager from '../../core/security/SessionManager';
+import TokenManager from '../../core/security/TokenManager';
 import { Loader } from '@shared/components/Loader/Loader';
 import { ErrorState } from '@shared/components/ErrorState/ErrorState';
 import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
-import { useGetModulesQuery } from '@data/datasources/moduleApi';
-import { useAppDispatch } from '@app/store';
+import { useDynamicModules, MODULE_IMAGES } from '../../hooks/useDynamicModules';
+import { useAppDispatch, useAppSelector } from '@app/store';
 import { setModules, setSelectedModule } from '@app/store/slices/moduleSlice';
+import { selectActivities } from '@app/store/slices/progressSlice';
 import { typography } from '@shared/theme/typography';
 import type { DashboardScreenProps } from '@shared/types/navigation';
 
@@ -21,7 +27,8 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) => {
   const dispatch = useAppDispatch();
-  const { data: modules, isLoading, error, refetch } = useGetModulesQuery();
+  const activities = useAppSelector(selectActivities);
+  const { modules, isLoading, error, refetch } = useDynamicModules();
 
   useEffect(() => {
     if (modules) {
@@ -37,9 +44,179 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
     }
   };
 
-  const { completedCount, overallProgress, inProgressModule, testsCompleted, avgScore } = useMemo(() => {
+  const handleSecurityCheck = async () => {
+    try {
+      const res = await api.post('/api/protected/data');
+      Alert.alert('Security Check Passed ✅', JSON.stringify(res.data, null, 2));
+    } catch (error: any) {
+      console.error(error);
+      Alert.alert('Security Check Failed ❌', error.response?.data?.error || error.message);
+    }
+  };
+
+  const handleRefreshQueueTest = async () => {
+    try {
+      // Force 401
+      const currentTokens = SessionManager.getActiveTokens();
+      if (currentTokens) SessionManager.updateInMemoryTokens({ ...currentTokens, accessToken: 'invalid' });
+      
+      const p1 = api.post('/api/protected/data', { testId: 1 }).then(() => 'Success 1').catch((e) => `Fail 1`);
+      const p2 = api.post('/api/protected/data', { testId: 2 }).then(() => 'Success 2').catch((e) => `Fail 2`);
+      const p3 = api.post('/api/protected/data', { testId: 3 }).then(() => 'Success 3').catch((e) => `Fail 3`);
+
+      const results = await Promise.all([p1, p2, p3]);
+      Alert.alert('Queue Test Complete', `Results:\n${results.join('\\n')}`);
+    } catch (error: any) {
+      Alert.alert('Queue Test Failed ❌', error.message);
+    }
+  };
+
+  const handleReplayTest = async () => {
+    try {
+      const currentTokens = SessionManager.getActiveTokens();
+      if (!currentTokens) return;
+      
+      const deviceId = await TokenManager.getDeviceId();
+      
+      const firstRes = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken,
+          deviceId: deviceId, 
+          sessionId: currentTokens.sessionId
+        })
+      });
+      
+      const secondRes = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken,
+          deviceId: deviceId,
+          sessionId: currentTokens.sessionId
+        })
+      });
+
+      const secondData = await secondRes.json();
+      Alert.alert(`Replay Status: ${secondRes.status}`, JSON.stringify(secondData, null, 2));
+    } catch (error: any) {
+      Alert.alert('Replay Test Failed', error.message);
+    }
+  };
+
+  const handleMismatchTest = async () => {
+    try {
+      const currentTokens = SessionManager.getActiveTokens();
+      if (!currentTokens) return;
+      
+      const res = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken,
+          deviceId: 'ATTACKER-DEVICE-ID-1234',
+          sessionId: currentTokens.sessionId
+        })
+      });
+      
+      const data = await res.json();
+      Alert.alert(`Mismatch Status: ${res.status}`, JSON.stringify(data, null, 2));
+    } catch (error: any) {
+      Alert.alert('Mismatch Test Failed', error.message);
+    }
+  };
+
+  const handleRefreshAfterLogoutTest = async () => {
+    try {
+      const currentTokens = SessionManager.getActiveTokens();
+      if (!currentTokens) return;
+
+      const deviceId = await TokenManager.getDeviceId();
+
+      // 1. Perform legitimate logout
+      await fetch('http://10.0.2.2:3000/auth/logout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: currentTokens.sessionId })
+      });
+
+      // 2. Try to refresh with the old token
+      const refreshRes = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken,
+          deviceId: deviceId,
+          sessionId: currentTokens.sessionId
+        })
+      });
+
+      const data = await refreshRes.json();
+      Alert.alert(`Refresh After Logout: ${refreshRes.status}`, JSON.stringify(data, null, 2));
+    } catch (error: any) {
+      Alert.alert('Test Failed', error.message);
+    }
+  };
+
+  const handleRefreshAfterReplayTest = async () => {
+    try {
+      const currentTokens = SessionManager.getActiveTokens();
+      if (!currentTokens) return;
+
+      const deviceId = await TokenManager.getDeviceId();
+
+      // 1. Legitimate user requests refresh (Backend rotates token)
+      const firstRes = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken,
+          deviceId: deviceId,
+          sessionId: currentTokens.sessionId
+        })
+      });
+
+      if (!firstRes.ok) {
+         Alert.alert('Test Aborted', 'Please log out and log back in to get a fresh session for this test!');
+         return;
+      }
+
+      const firstData = await firstRes.json();
+      const newRefreshToken = firstData.refreshToken; // This is the new active token
+
+      // 2. Attacker replays the OLD token (Backend detects replay and revokes session)
+      await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: currentTokens.refreshToken, // Old token!
+          deviceId: deviceId,
+          sessionId: currentTokens.sessionId
+        })
+      });
+
+      // 3. Legitimate user tries to refresh with their NEW, valid token
+      const thirdRes = await fetch('http://10.0.2.2:3000/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          refreshToken: newRefreshToken, // Valid token, but session is dead!
+          deviceId: deviceId,
+          sessionId: currentTokens.sessionId
+        })
+      });
+
+      const thirdData = await thirdRes.json();
+      Alert.alert(`Refresh After Replay: ${thirdRes.status}`, JSON.stringify(thirdData, null, 2));
+    } catch (error: any) {
+      Alert.alert('Test Failed', error.message);
+    }
+  };
+
+  const { completedCount, overallProgress, inProgressModule, testsCompleted, avgScore, dayStreak } = useMemo(() => {
     if (!modules || modules.length === 0) {
-      return { completedCount: 0, overallProgress: 0, inProgressModule: null, testsCompleted: 0, avgScore: 0 };
+      return { completedCount: 0, overallProgress: 0, inProgressModule: null, testsCompleted: 0, avgScore: 0, dayStreak: 0 };
     }
     const completed = modules.filter((m) => m.isCompleted).length;
     const progress = modules.reduce((sum, m) => sum + m.completionPercentage, 0) / modules.length;
@@ -50,9 +227,10 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
       overallProgress: progress,
       inProgressModule: inProgress || modules.find((m) => !m.isLocked && !m.isCompleted) || null,
       testsCompleted: 0,
-      avgScore: 67,
+      avgScore: Math.round(progress), // dynamic avgScore based on overall progress
+      dayStreak: activities && activities.length > 0 ? Math.min(activities.length, 12) : 0, // dynamic day streak based on activity
     };
-  }, [modules]);
+  }, [modules, activities]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -142,21 +320,21 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
         {/* Stats Row */}
         <View style={styles.statsRow}>
           <View style={styles.statBox}>
-            <View style={[styles.statIconWrapper, {backgroundColor: '#DBEAFE'}]}>
+            <View style={[styles.statIconWrapper, {backgroundColor: 'rgba(59, 130, 246, 0.1)'}]}>
               <Text style={styles.statIcon}>🔥</Text>
             </View>
-            <Text style={styles.statValue}>12</Text>
+            <Text style={styles.statValue}>{dayStreak}</Text>
             <Text style={styles.statLabel}>Day Streak</Text>
           </View>
           <View style={styles.statBox}>
-            <View style={[styles.statIconWrapper, {backgroundColor: '#DCFCE7'}]}>
+            <View style={[styles.statIconWrapper, {backgroundColor: 'rgba(16, 185, 129, 0.1)'}]}>
               <Text style={styles.statIcon}>🏆</Text>
             </View>
             <Text style={styles.statValue}>{completedCount}</Text>
             <Text style={styles.statLabel}>Completed</Text>
           </View>
           <View style={styles.statBox}>
-            <View style={[styles.statIconWrapper, {backgroundColor: '#FCE7F3'}]}>
+            <View style={[styles.statIconWrapper, {backgroundColor: 'rgba(139, 92, 246, 0.1)'}]}>
               <Text style={styles.statIcon}>⭐</Text>
             </View>
             <Text style={styles.statValue}>{avgScore}%</Text>
@@ -186,8 +364,12 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
                   activeOpacity={0.8}
                   onPress={() => handleModulePress(mod.id)}
                 >
-                  <View style={[styles.recommendedImage, { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }]}>
-                    <Text style={styles.recommendedImageEmoji}>{index % 2 === 0 ? '💻' : '🚀'}</Text>
+                  <View style={styles.recommendedImageContainer}>
+                    <Image 
+                      source={MODULE_IMAGES[mod.id] || require('../../assets/images/react-native.png')} 
+                      style={styles.recommendedImage}
+                      resizeMode="cover"
+                    />
                   </View>
                   <View style={styles.recommendedInfo}>
                     <Text style={styles.recommendedTitle} numberOfLines={2}>{mod.title}</Text>
@@ -204,33 +386,61 @@ export const DashboardScreen: React.FC<DashboardScreenProps> = ({ navigation }) 
           </View>
         )}
 
+        {/* Security Tests moved to bottom */}
+
         {/* Recent Activity */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Recent Activity</Text>
           <View style={styles.activityList}>
-            <View style={styles.activityCard}>
-              <View style={[styles.activityIconBg, { backgroundColor: '#F0FDF4' }]}>
-                <Text style={styles.activityIcon}>✅</Text>
+            {activities.length > 0 ? (
+              activities.slice(0, 5).map((activity) => (
+                <View key={activity.id} style={styles.activityCard}>
+                  <View style={[styles.activityIconBg, { backgroundColor: activity.type === 'quiz_completed' ? '#F0FDF4' : '#EFF6FF' }]}>
+                    <Text style={styles.activityIcon}>
+                      {activity.type === 'quiz_completed' ? '✅' : activity.type === 'certificate_earned' ? '🎓' : '📖'}
+                    </Text>
+                  </View>
+                  <View style={styles.activityInfo}>
+                    <Text style={styles.activityTitle}>{activity.title}</Text>
+                    <Text style={styles.activitySubtext}>{activity.type === 'video_watched' ? 'Video Lesson' : 'Learning App'}</Text>
+                  </View>
+                  <Text style={styles.activityTime}>{activity.date}</Text>
+                </View>
+              ))
+            ) : (
+              <View style={styles.activityCard}>
+                <View style={styles.activityInfo}>
+                  <Text style={styles.activityTitle}>No recent activity</Text>
+                  <Text style={styles.activitySubtext}>Start a module to see your activity here!</Text>
+                </View>
               </View>
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityTitle}>Completed Assessment</Text>
-                <Text style={styles.activitySubtext}>React Native Fundamentals</Text>
-              </View>
-              <Text style={styles.activityTime}>2h ago</Text>
-            </View>
-            
-            <View style={styles.activityCard}>
-              <View style={[styles.activityIconBg, { backgroundColor: '#EFF6FF' }]}>
-                <Text style={styles.activityIcon}>📖</Text>
-              </View>
-              <View style={styles.activityInfo}>
-                <Text style={styles.activityTitle}>Started New Module</Text>
-                <Text style={styles.activitySubtext}>Advanced Security</Text>
-              </View>
-              <Text style={styles.activityTime}>1d ago</Text>
-            </View>
+            )}
           </View>
         </View>
+
+        {/* Security V&V Test Buttons (Moved to bottom) */}
+        <View style={{ paddingHorizontal: 24, marginTop: 32, marginBottom: 10 }}>
+          <Text style={{ color: 'black', opacity: 0.7, marginBottom: 8 }}>Enterprise Security Testing</Text>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#10B981', marginBottom: 10 }]} onPress={handleSecurityCheck}>
+            <Text style={styles.heroButtonText}>Test Protected API (HMAC)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#3B82F6', marginBottom: 10 }]} onPress={handleRefreshQueueTest}>
+            <Text style={styles.heroButtonText}>Refresh Rotation Stress Test</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#F59E0B', marginBottom: 10 }]} onPress={handleReplayTest}>
+            <Text style={styles.heroButtonText}>Simulate Stolen Token (Replay)</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#EF4444', marginBottom: 10 }]} onPress={handleMismatchTest}>
+            <Text style={styles.heroButtonText}>Simulate Device Mismatch</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#8B5CF6', marginBottom: 10 }]} onPress={handleRefreshAfterLogoutTest}>
+            <Text style={styles.heroButtonText}>Refresh After Logout</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={[styles.heroButton, { backgroundColor: '#EC4899', marginBottom: 10 }]} onPress={handleRefreshAfterReplayTest}>
+            <Text style={styles.heroButtonText}>Refresh After Replay</Text>
+          </TouchableOpacity>
+        </View>
+
       </ScrollView>
     </View>
   );
@@ -476,13 +686,14 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#F1F5F9',
   },
-  recommendedImage: {
+  recommendedImageContainer: {
     height: 120,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: '100%',
+    overflow: 'hidden',
   },
-  recommendedImageEmoji: {
-    fontSize: 48,
+  recommendedImage: {
+    width: '100%',
+    height: '100%',
   },
   recommendedInfo: {
     padding: 20,

@@ -97,7 +97,7 @@ export const ModuleDetailScreen: React.FC<ModuleDetailScreenProps> = ({
           </View>
         }
         renderItem={({ item, index }) => (
-          <VideoListItem video={item} index={index} onPress={handleVideoPress} />
+          <VideoListItem video={item} index={index} moduleId={moduleId} onPress={handleVideoPress} />
         )}
         ListFooterComponent={
           <View style={styles.footerSection}>

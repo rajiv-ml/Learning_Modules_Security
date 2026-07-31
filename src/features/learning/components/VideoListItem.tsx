@@ -1,18 +1,21 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image } from 'react-native';
 import { ProgressBar } from '@shared/components/ProgressBar/ProgressBar';
 import type { VideoLesson } from '@shared/types/module';
 import { typography } from '@shared/theme/typography';
+import { MODULE_IMAGES } from '../../../hooks/useDynamicModules';
 
 export interface VideoListItemProps {
   video: VideoLesson;
   index: number;
+  moduleId?: string;
   onPress: (videoId: string) => void;
 }
 
 export const VideoListItem: React.FC<VideoListItemProps> = ({
   video,
   index,
+  moduleId,
   onPress,
 }) => {
   const formatDuration = (seconds: number) => {
@@ -29,8 +32,11 @@ export const VideoListItem: React.FC<VideoListItemProps> = ({
       accessibilityRole="button"
     >
       <View style={styles.thumbnailContainer}>
-        {/* Placeholder for thumbnail */}
-        <View style={[styles.thumbnailPlaceholder, { backgroundColor: index % 2 === 0 ? '#3B82F6' : '#8B5CF6' }]}>
+        <Image 
+          source={moduleId ? MODULE_IMAGES[moduleId] : require('../../../assets/images/react-native.png')} 
+          style={styles.thumbnailImage} 
+        />
+        <View style={styles.playOverlay}>
           <Text style={styles.playIcon}>{video.isCompleted ? '🔄' : '▶'}</Text>
         </View>
         <View style={styles.durationBadge}>
@@ -51,13 +57,13 @@ export const VideoListItem: React.FC<VideoListItemProps> = ({
         </View>
         <View style={styles.progressRow}>
           <ProgressBar
-            percentage={video.watchedPercentage}
+            percentage={video.isCompleted ? 100 : 0}
             color={video.isCompleted ? '#10B981' : '#3B82F6'}
             trackColor="#F1F5F9"
             style={styles.progress}
             height={6}
           />
-          <Text style={styles.progressText}>{Math.round(video.watchedPercentage)}%</Text>
+          <Text style={styles.progressText}>{video.isCompleted ? 100 : 0}%</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -91,8 +97,14 @@ const styles = StyleSheet.create({
     position: 'relative',
     marginRight: 16,
   },
-  thumbnailPlaceholder: {
-    flex: 1,
+  thumbnailImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(15, 23, 42, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
